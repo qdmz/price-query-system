@@ -71,8 +71,8 @@ def create_app(config_name='default'):
     # 创建数据库表
     with app.app_context():
         db.create_all()
-        # 创建默认管理员账户
-        from app.services.init_service import create_default_admin
-        create_default_admin()
+        # 初始化示例数据
+        from app.services.init_service import init_sample_data
+        init_sample_data()
     
     return app
