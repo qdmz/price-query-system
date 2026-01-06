@@ -217,33 +217,59 @@ function renderProducts(products, containerId) {
     container.empty();
     
     products.forEach(product => {
-        const imageHtml = product.primary_image 
-            ? `<img src="${product.primary_image}" class="card-img-top product-image" alt="${product.name}">`
-            : `<div class="card-img-top product-image d-flex align-items-center justify-content-center bg-light">
-                 <i class="bi bi-image" style="font-size: 3rem; color: #ccc;"></i>
-               </div>`;
+        // 检查是否有有效的图片URL
+        const hasImage = product.primary_image && product.primary_image.trim() !== '';
         
-        const card = `
-            <div class="col-md-3 mb-4">
-                <div class="card product-card h-100" onclick="showProductDetail(${product.id})">
-                    ${imageHtml}
-                    <div class="card-body">
-                        <h6 class="card-title">${product.name}</h6>
-                        <p class="card-text small text-muted mb-1">
-                            <strong>货号:</strong> ${product.product_code}
-                        </p>
-                        <p class="card-text small text-muted mb-1">
-                            ${product.specification ? '<strong>规格:</strong> ' + product.specification : ''}
-                        </p>
-                        <p class="card-text price-tag">¥${product.retail_price.toFixed(2)}</p>
-                        <p class="card-text small text-success">
-                            批发价: ¥${product.wholesale_price.toFixed(2)} (${product.wholesale_min_qty}件起)
-                        </p>
+        if (hasImage) {
+            const imageHtml = `<img src="${product.primary_image}" class="card-img-top product-image" alt="${product.name}" onerror="this.onerror=null;this.src='/static/images/product-placeholder.jpg';">`;
+            const card = `
+                <div class="col-md-3 mb-4">
+                    <div class="card product-card h-100" onclick="showProductDetail(${product.id})">
+                        ${imageHtml}
+                        <div class="card-body">
+                            <h6 class="card-title">${product.name}</h6>
+                            <p class="card-text small text-muted mb-1">
+                                <strong>货号:</strong> ${product.product_code}
+                            </p>
+                            <p class="card-text small text-muted mb-1">
+                                ${product.specification ? '<strong>规格:</strong> ' + product.specification : ''}
+                            </p>
+                            <p class="card-text price-tag">¥${product.retail_price.toFixed(2)}</p>
+                            <p class="card-text small text-success">
+                                批发价: ¥${product.wholesale_price.toFixed(2)} (${product.wholesale_min_qty}件起)
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
-        container.append(card);
+            `;
+            container.append(card);
+        } else {
+            // 无图片时显示占位符
+            const placeholderHtml = `<div class="card-img-top product-image d-flex align-items-center justify-content-center bg-light">
+                <i class="bi bi-image" style="font-size: 3rem; color: #ccc;"></i>
+               </div>`;
+            const card = `
+                <div class="col-md-3 mb-4">
+                    <div class="card product-card h-100" onclick="showProductDetail(${product.id})">
+                        ${placeholderHtml}
+                        <div class="card-body">
+                            <h6 class="card-title">${product.name}</h6>
+                            <p class="card-text small text-muted mb-1">
+                                <strong>货号:</strong> ${product.product_code}
+                            </p>
+                            <p class="card-text small text-muted mb-1">
+                                ${product.specification ? '<strong>规格:</strong> ' + product.specification : ''}
+                            </p>
+                            <p class="card-text price-tag">¥${product.retail_price.toFixed(2)}</p>
+                            <p class="card-text small text-success">
+                                批发价: ¥${product.wholesale_price.toFixed(2)} (${product.wholesale_min_qty}件起)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.append(card);
+        }
     });
 }
 
