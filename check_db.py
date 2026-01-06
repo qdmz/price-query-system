@@ -1,7 +1,7 @@
 from app import create_app
 from app.models import db, Product, Order, Category
 
-app = create_app('production')
+app = create_app('development')
 with app.app_context():
     print("=" * 60)
     print("数据库统计")

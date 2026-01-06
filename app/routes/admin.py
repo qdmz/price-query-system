@@ -256,6 +256,25 @@ def products_import():
     
     return render_template('admin/products_import.html')
 
+# 示例文件下载
+@admin_bp.route('/products/import/sample')
+@login_required
+def download_sample():
+    """下载示例Excel文件"""
+    import os
+    from flask import send_file, current_app
+    
+    sample_file = os.path.join(current_app.root_path, 'static', 'files', 'product_import_template.xlsx')
+    
+    if os.path.exists(sample_file):
+        return send_file(sample_file, 
+                         as_attachment=True, 
+                         download_name='产品导入模板.xlsx',
+                         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    else:
+        flash('示例文件不存在', 'error')
+        return redirect(url_for('admin.products_import'))
+
 # 订单管理
 @admin_bp.route('/orders')
 @login_required

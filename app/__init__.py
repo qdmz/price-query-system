@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_migrate import Migrate
@@ -61,6 +61,12 @@ def create_app(config_name='default'):
     app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(system_bp)
+    
+    # 添加上传文件的路由（处理临时目录）
+    @app.route('/static/uploads/<path:filename>')
+    def serve_upload_file(filename):
+        """提供上传的文件（包括临时目录）"""
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
     
     # 创建数据库表
     with app.app_context():
