@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, os.path.abspath('.'))
 
 from app import create_app
-from app.models import db, User, SystemSetting, Product, ProductImage, Order, OrderItem
+from app.models import db, User, SystemSetting, Product, ProductImage, Order, OrderItem, Category
 from app.services.product_service import ProductService
 from app.services.order_service import OrderService
 
@@ -148,6 +148,89 @@ def create_default_settings(app):
         print("✓ 默认系统设置已创建")
 
 
+# 默认产品数据
+DEFAULT_PRODUCTS = [
+    {'code': 'P001', 'name': '牙膏 清爽薄荷味', 'category': '个护用品', 'retail': 12.8, 'wholesale': 10.0, 'stock': 500, 'unit': '支', 'model': 'TB-001', 'specification': '120g', 'description': '清爽薄荷味牙膏，有效清新口气，保护牙龈健康'},
+    {'code': 'P002', 'name': '洗发水 去屑型', 'category': '个护用品', 'retail': 38.5, 'wholesale': 32.0, 'stock': 300, 'unit': '瓶', 'model': 'XP-002', 'specification': '500ml', 'description': '去屑型洗发水，温和配方，有效去屑止痒'},
+    {'code': 'P003', 'name': '沐浴露 薰衣草香', 'category': '个护用品', 'retail': 45.0, 'wholesale': 38.0, 'stock': 280, 'unit': '瓶', 'model': 'MY-003', 'specification': '750ml', 'description': '薰衣草香沐浴露，滋润保湿，舒缓放松'},
+    {'code': 'P004', 'name': '洗衣液 深层洁净', 'category': '清洁用品', 'retail': 29.9, 'wholesale': 25.0, 'stock': 600, 'unit': '瓶', 'model': 'XY-004', 'specification': '1kg', 'description': '深层洁净洗衣液，强力去污，护衣护色'},
+    {'code': 'P005', 'name': '洗洁精 柠檬味', 'category': '清洁用品', 'retail': 15.8, 'wholesale': 13.0, 'stock': 800, 'unit': '瓶', 'model': 'XJ-005', 'specification': '500ml', 'description': '柠檬味洗洁精，天然去油，不伤手'},
+    {'code': 'P006', 'name': '拖把 旋转拖地神器', 'category': '清洁工具', 'retail': 89.0, 'wholesale': 75.0, 'stock': 120, 'unit': '个', 'model': 'TB-006', 'specification': '标准版', 'description': '旋转拖地神器，拖地更轻松，无需弯腰'},
+    {'code': 'P007', 'name': '扫帚套装 扫把簸箕', 'category': '清洁工具', 'retail': 35.0, 'wholesale': 28.0, 'stock': 200, 'unit': '套', 'model': 'SB-007', 'specification': '组合装', 'description': '扫帚套装，包含扫把和簸箕，清洁必备'},
+    {'code': 'P008', 'name': '毛巾 纯棉吸水', 'category': '家居用品', 'retail': 18.0, 'wholesale': 15.0, 'stock': 500, 'unit': '条', 'model': 'MJ-008', 'specification': '35x75cm', 'description': '纯棉吸水毛巾，柔软亲肤，吸水性强'},
+    {'code': 'P009', 'name': '水杯 不锈钢保温', 'category': '家居用品', 'retail': 68.0, 'wholesale': 55.0, 'stock': 250, 'unit': '个', 'model': 'SB-009', 'specification': '500ml', 'description': '不锈钢保温水杯，长效保温，安全健康'},
+    {'code': 'P010', 'name': '菜板 竹制防霉', 'category': '厨房用品', 'retail': 42.0, 'wholesale': 35.0, 'stock': 180, 'unit': '块', 'model': 'CB-010', 'specification': '40x30cm', 'description': '竹制防霉菜板，天然材质，健康环保'},
+    {'code': 'P011', 'name': '餐具套装 不锈钢', 'category': '厨房用品', 'retail': 128.0, 'wholesale': 105.0, 'stock': 80, 'unit': '套', 'model': 'CJ-011', 'specification': '4人装', 'description': '不锈钢餐具套装，包含勺子、叉子、筷子，耐用易清洗'},
+    {'code': 'P012', 'name': '湿巾 婴儿专用', 'category': '母婴用品', 'retail': 25.0, 'wholesale': 20.0, 'stock': 400, 'unit': '包', 'model': 'WS-012', 'specification': '80片', 'description': '婴儿专用湿巾，无酒精无刺激，温和清洁'},
+    {'code': 'P013', 'name': '牙膏 洁白亮齿', 'category': '个护用品', 'retail': 14.5, 'wholesale': 12.0, 'stock': 450, 'unit': '支', 'model': 'TB-013', 'specification': '120g', 'description': '洁白亮齿牙膏，有效去除牙渍，让牙齿更洁白'},
+    {'code': 'P014', 'name': '洗发水 滋润养护', 'category': '个护用品', 'retail': 42.0, 'wholesale': 35.0, 'stock': 320, 'unit': '瓶', 'model': 'XP-014', 'specification': '500ml', 'description': '滋润养护洗发水，修复受损发质，柔顺亮泽'},
+    {'code': 'P015', 'name': '洗衣液 香氛柔顺', 'category': '清洁用品', 'retail': 32.9, 'wholesale': 28.0, 'stock': 550, 'unit': '瓶', 'model': 'XY-015', 'specification': '1kg', 'description': '香氛柔顺洗衣液，留香持久，衣物柔顺'},
+]
+
+
+def create_default_products(app):
+    """创建默认产品数据和分类"""
+    with app.app_context():
+        print("\n" + "=" * 60)
+        print("开始创建默认产品数据...")
+        print("=" * 60)
+        
+        # 获取所有分类名称
+        category_names = list(set(p['category'] for p in DEFAULT_PRODUCTS))
+        
+        # 创建分类
+        for category_name in category_names:
+            category = Category.query.filter_by(name=category_name).first()
+            if not category:
+                category = Category(name=category_name, description=category_name)
+                db.session.add(category)
+                print(f"  创建分类: {category_name}")
+        
+        db.session.commit()
+        
+        # 创建产品
+        created_count = 0
+        skipped_count = 0
+        
+        for product_data in DEFAULT_PRODUCTS:
+            # 检查产品是否已存在
+            existing_product = Product.query.filter_by(product_code=product_data['code']).first()
+            if existing_product:
+                skipped_count += 1
+                continue
+            
+            # 获取分类
+            category = Category.query.filter_by(name=product_data['category']).first()
+            
+            # 生成条码
+            barcode = f"690{product_data['code'][1:]:0>10}"
+            
+            # 创建产品
+            product = Product(
+                product_code=product_data['code'],
+                barcode=barcode,
+                name=product_data['name'],
+                model=product_data['model'],
+                specification=product_data['specification'],
+                unit=product_data['unit'],
+                retail_price=product_data['retail'],
+                wholesale_price=product_data['wholesale'],
+                wholesale_min_qty=3,
+                stock=product_data['stock'],
+                description=product_data['description'],
+                category_id=category.id if category else None,
+                status='active'
+            )
+            
+            db.session.add(product)
+            created_count += 1
+            print(f"  创建产品: {product_data['code']} - {product_data['name']}")
+        
+        db.session.commit()
+        
+        print(f"✓ 产品数据创建完成 - 新增: {created_count}, 跳过: {skipped_count}")
+
+
 def add_product_images(app):
     """为产品添加网络图片"""
     with app.app_context():
@@ -249,46 +332,80 @@ def generate_orders_for_month(app, year, month, num_orders):
                 num_products = random.randint(2, 5)
                 selected_products = random.sample(products, min(num_products, len(products)))
                 
-                # 创建订单项目
-                items = []
+                # 计算订单总金额和总数量
+                total_amount = 0
+                total_quantity = 0
+                order_items = []
+                
                 for product in selected_products:
                     quantity = random.randint(1, 10)
-                    items.append({
-                        'product_id': product.id,
-                        'quantity': quantity
+                    
+                    # 判断使用零售价还是批发价
+                    if quantity >= product.wholesale_min_qty:
+                        price = product.wholesale_price
+                    else:
+                        price = product.retail_price
+                    
+                    subtotal = price * quantity
+                    total_amount += subtotal
+                    total_quantity += quantity
+                    
+                    order_items.append({
+                        'product': product,
+                        'quantity': quantity,
+                        'price': price,
+                        'subtotal': subtotal
                     })
                 
-                # 创建订单数据
-                order_data = {
-                    'customer_name': customer_name,
-                    'customer_phone': customer_phone,
-                    'customer_email': customer_email,
-                    'customer_address': customer_address,
-                    'items': items,
-                    'notes': f'自动生成的测试订单 - {year}年{month}月'
-                }
-                
-                # 创建订单
-                order = OrderService.create_order(order_data)
-                
-                # 修改订单创建时间为指定时间
-                order.created_at = order_date
-                order.updated_at = order_date
+                # 生成订单号
+                order_no = f"ORD{datetime.now().strftime('%Y%m%d%H%M%S')}{random.randint(1000, 9999)}"
                 
                 # 随机设置订单状态（70%完成，20%已确认，10%已取消）
                 status_rand = random.random()
                 if status_rand < 0.7:
-                    order.status = 'completed'
+                    status = 'completed'
                 elif status_rand < 0.9:
-                    order.status = 'confirmed'
+                    status = 'confirmed'
                 else:
-                    order.status = 'cancelled'
+                    status = 'cancelled'
+                
+                # 创建订单
+                order = Order(
+                    order_no=order_no,
+                    customer_name=customer_name,
+                    customer_phone=customer_phone,
+                    customer_email=customer_email,
+                    customer_address=customer_address,
+                    total_amount=total_amount,
+                    total_quantity=total_quantity,
+                    status=status,
+                    notes=f'自动生成的测试订单 - {year}年{month}月',
+                    created_at=order_date,
+                    updated_at=order_date
+                )
+                
+                db.session.add(order)
+                db.session.flush()  # 获取订单ID
+                
+                # 创建订单项
+                for item_data in order_items:
+                    order_item = OrderItem(
+                        order_id=order.id,
+                        product_id=item_data['product'].id,
+                        product_name=item_data['product'].name,
+                        product_code=item_data['product'].product_code,
+                        quantity=item_data['quantity'],
+                        unit_price=item_data['price'],
+                        subtotal=item_data['subtotal']
+                    )
+                    db.session.add(order_item)
                 
                 db.session.commit()
                 created_count += 1
                 
             except Exception as e:
                 db.session.rollback()
+                print(f"  订单创建失败: {e}")
         
         return created_count
 
@@ -362,10 +479,13 @@ def init_all_data():
         # 2. 创建默认系统设置
         create_default_settings(app)
         
-        # 3. 为产品添加网络图片
+        # 3. 创建默认产品数据（新增）
+        create_default_products(app)
+        
+        # 4. 为产品添加网络图片
         add_product_images(app)
         
-        # 4. 生成测试订单数据
+        # 5. 生成测试订单数据
         generate_test_orders(app)
         
         print("\n" + "=" * 60)
