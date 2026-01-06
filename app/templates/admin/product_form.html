@@ -2,6 +2,18 @@
 
 {% block title %}{{ '编辑' if product else '新增' }}产品{% endblock %}
 
+{% block extra_css %}
+<style>
+.image-item {
+    width: 90px;
+    height: 110px;
+}
+.image-item img {
+    transition: border-color 0.2s;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>
@@ -14,61 +26,61 @@
 
 <div class="card shadow">
     <div class="card-body">
-        <form method="POST" enctype="multipart/form-data">
+        <form id="productForm" method="POST" enctype="multipart/form-data">
             <div class="row">
                 <!-- 左侧：基本信息 -->
                 <div class="col-md-8">
                     <h5 class="mb-3">基本信息</h5>
-                    
+
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <label class="form-label">货号 <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="product_code" 
+                            <input type="text" class="form-control" name="product_code"
                                    value="{{ product.product_code if product else '' }}" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">条码</label>
-                            <input type="text" class="form-control" name="barcode" 
+                            <input type="text" class="form-control" name="barcode"
                                    value="{{ product.barcode if product else '' }}">
                         </div>
                         <div class="col-12">
                             <label class="form-label">产品名称 <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="name" 
+                            <input type="text" class="form-control" name="name"
                                    value="{{ product.name if product else '' }}" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">型号</label>
-                            <input type="text" class="form-control" name="model" 
+                            <input type="text" class="form-control" name="model"
                                    value="{{ product.model if product else '' }}">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">规格</label>
-                            <input type="text" class="form-control" name="specification" 
+                            <input type="text" class="form-control" name="specification"
                                    value="{{ product.specification if product else '' }}">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">单位</label>
-                            <input type="text" class="form-control" name="unit" 
+                            <input type="text" class="form-control" name="unit"
                                    value="{{ product.unit if product else '件' }}">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">零售价 <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" name="retail_price" step="0.01" 
+                            <input type="number" class="form-control" name="retail_price" step="0.01"
                                    value="{{ '%.2f'|format(product.retail_price) if product else '0.00' }}" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">批发价 <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" name="wholesale_price" step="0.01" 
+                            <input type="number" class="form-control" name="wholesale_price" step="0.01"
                                    value="{{ '%.2f'|format(product.wholesale_price) if product else '0.00' }}" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">批发最小数量</label>
-                            <input type="number" class="form-control" name="wholesale_min_qty" 
+                            <input type="number" class="form-control" name="wholesale_min_qty"
                                    value="{{ product.wholesale_min_qty if product else '1' }}" min="1">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">库存</label>
-                            <input type="number" class="form-control" name="stock" 
+                            <input type="number" class="form-control" name="stock"
                                    value="{{ product.stock if product else '0' }}" min="0">
                         </div>
                         <div class="col-md-6">
@@ -76,7 +88,7 @@
                             <select class="form-select" name="category_id">
                                 <option value="">选择分类</option>
                                 {% for category in categories %}
-                                <option value="{{ category.id }}" 
+                                <option value="{{ category.id }}"
                                         {% if product and product.category_id == category.id %}selected{% endif %}>
                                     {{ category.name }}
                                 </option>
@@ -89,29 +101,29 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- 右侧：图片管理 -->
                 <div class="col-md-4">
                     <h5 class="mb-3">产品图片</h5>
-                    
+
                     <div class="mb-4">
                         <label class="form-label">上传图片</label>
                         <input type="file" class="form-control" name="images" multiple accept="image/*">
                         <small class="text-muted">支持 jpg, png, gif 格式，最大 16MB</small>
                     </div>
-                    
+
                     <div class="mb-4">
                         <label class="form-label">网络图片URL</label>
-                        <textarea class="form-control" name="image_urls" rows="4" 
+                        <textarea class="form-control" name="image_urls" rows="4"
                                   placeholder="每行一个URL，自动下载图片"></textarea>
                     </div>
-                    
+
                     <div class="mb-4">
                         <label class="form-label">已有图片</label>
-                        <div class="d-flex flex-wrap gap-2">
+                        <div id="imageList" class="d-flex flex-wrap gap-2">
                             {% if product %}
                                 {% for image in product.images %}
-                                <div class="position-relative" style="width: 90px; height: 110px;">
+                                <div class="position-relative image-item" data-image-id="{{ image.id }}">
                                     <img src="{{ image.image_url }}" width="90" height="90"
                                          style="object-fit: cover; border-radius: 4px; border: 2px solid {% if image.is_primary %}#0d6efd{% else %}#dee2e6{% endif %};">
                                     {% if image.is_primary %}
@@ -121,29 +133,16 @@
                                     <!-- 操作按钮 -->
                                     <div class="position-absolute d-flex gap-1" style="bottom: 0; left: 0; right: 0; padding: 4px; background: rgba(0,0,0,0.7); border-radius: 0 0 4px 4px;">
                                         <!-- 设置主图按钮 -->
-                                        {% if not image.is_primary %}
-                                        <form action="/admin/products/images/{{ image.id }}/primary" method="POST" style="display: inline;">
-                                            <button type="submit" class="btn btn-sm btn-primary" title="设为主图"
-                                                    style="width: 32px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center;">
-                                                <i class="bi bi-star" style="font-size: 12px;"></i>
-                                            </button>
-                                        </form>
-                                        {% else %}
-                                        <button type="button" class="btn btn-sm btn-primary disabled"
-                                                style="width: 32px; height: 28px; padding: 0; opacity: 0.7;">
-                                            <i class="bi bi-star-fill" style="font-size: 12px;"></i>
+                                        <button type="button" class="btn btn-sm btn-primary btn-set-primary" data-image-id="{{ image.id }}" title="设为主图"
+                                                style="width: 32px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-star{{ '-fill' if image.is_primary else '' }}" style="font-size: 12px;"></i>
                                         </button>
-                                        {% endif %}
 
                                         <!-- 删除按钮 -->
-                                        <form action="/admin/products/images/{{ image.id }}/delete" method="POST"
-                                              style="display: inline;"
-                                              onsubmit="return confirm('确定要删除这张图片吗？');">
-                                            <button type="submit" class="btn btn-sm btn-danger" title="删除图片"
-                                                    style="width: 32px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center;">
-                                                <i class="bi bi-trash" style="font-size: 12px;"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" class="btn btn-sm btn-danger btn-delete-image" data-image-id="{{ image.id }}" title="删除图片"
+                                                style="width: 32px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-trash" style="font-size: 12px;"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 {% endfor %}
@@ -156,18 +155,106 @@
                     </div>
                 </div>
             </div>
-            
+
             <hr>
-            
+
             <div class="d-flex justify-content-end gap-2">
                 <a href="{{ url_for('admin.products') }}" class="btn btn-outline-secondary">
                     <i class="bi bi-x-circle"></i> 取消
                 </a>
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary" id="saveBtn">
                     <i class="bi bi-check-circle"></i> 保存
                 </button>
             </div>
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // 设置主图
+    $(document).on('click', '.btn-set-primary', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var imageId = $(this).data('image-id');
+        var btn = $(this);
+
+        $.ajax({
+            url: '/admin/products/images/' + imageId + '/primary',
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                location.reload();
+            },
+            error: function(xhr) {
+                alert('设置失败: ' + (xhr.responseJSON?.message || '未知错误'));
+            }
+        });
+    });
+
+    // 删除图片
+    $(document).on('click', '.btn-delete-image', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!confirm('确定要删除这张图片吗？')) {
+            return;
+        }
+
+        var imageId = $(this).data('image-id');
+        var imageItem = $(this).closest('.image-item');
+
+        $.ajax({
+            url: '/admin/products/images/' + imageId + '/delete',
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                imageItem.fadeOut(300, function() {
+                    $(this).remove();
+                });
+            },
+            error: function(xhr) {
+                alert('删除失败: ' + (xhr.responseJSON?.message || '未知错误'));
+            }
+        });
+    });
+
+    // 表单提交
+    $('#productForm').on('submit', function(e) {
+        e.preventDefault();
+
+        var formData = new FormData(this);
+        var saveBtn = $('#saveBtn');
+
+        // 显示加载状态
+        saveBtn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> 保存中...');
+
+        $.ajax({
+            url: $(this).attr('action') || window.location.href,
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                // 保存成功，跳转到产品列表
+                window.location.href = '/admin/products';
+            },
+            error: function(xhr) {
+                saveBtn.prop('disabled', false).html('<i class="bi bi-check-circle"></i> 保存');
+                alert('保存失败: ' + (xhr.responseJSON?.message || '未知错误'));
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

@@ -89,9 +89,9 @@ def product_new():
                 'description': request.form.get('description'),
                 'category_id': request.form.get('category_id')
             }
-            
+
             product = ProductService.create_product(data)
-            
+
             # 处理图片上传
             if 'images' in request.files:
                 files = request.files.getlist('images')
@@ -107,7 +107,7 @@ def product_new():
                                 sort_order=idx
                             )
                             db.session.add(image)
-            
+
             # 处理网络图片
             image_urls = request.form.get('image_urls', '').strip()
             if image_urls:
@@ -124,16 +124,25 @@ def product_new():
                             sort_order=existing_count + idx
                         )
                         db.session.add(image)
-            
+
             db.session.commit()
-            
-            flash('产品创建成功', 'success')
-            return redirect(url_for('admin.products'))
-            
+
+            # 判断是否是AJAX请求
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': True, 'message': '产品创建成功'})
+            else:
+                flash('产品创建成功', 'success')
+                return redirect(url_for('admin.products'))
+
         except Exception as e:
             db.session.rollback()
-            flash(f'创建产品失败: {str(e)}', 'error')
-    
+
+            # 判断是否是AJAX请求
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': False, 'message': str(e)}), 500
+            else:
+                flash(f'创建产品失败: {str(e)}', 'error')
+
     categories = Category.query.all()
     return render_template('admin/product_form.html', categories=categories)
 
@@ -142,7 +151,7 @@ def product_new():
 def product_edit(product_id):
     """编辑产品"""
     product = Product.query.get_or_404(product_id)
-    
+
     if request.method == 'POST':
         try:
             # 更新产品信息
@@ -160,9 +169,9 @@ def product_edit(product_id):
                 'description': request.form.get('description'),
                 'category_id': request.form.get('category_id')
             }
-            
+
             ProductService.update_product(product_id, data)
-            
+
             # 处理新图片上传
             if 'images' in request.files:
                 files = request.files.getlist('images')
@@ -178,7 +187,7 @@ def product_edit(product_id):
                                 sort_order=existing_count + idx
                             )
                             db.session.add(image)
-            
+
             # 处理网络图片
             image_urls = request.form.get('image_urls', '').strip()
             if image_urls:
@@ -194,16 +203,25 @@ def product_edit(product_id):
                             sort_order=existing_count + idx
                         )
                         db.session.add(image)
-            
+
             db.session.commit()
-            
-            flash('产品更新成功', 'success')
-            return redirect(url_for('admin.products'))
-            
+
+            # 判断是否是AJAX请求
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': True, 'message': '产品更新成功'})
+            else:
+                flash('产品更新成功', 'success')
+                return redirect(url_for('admin.products'))
+
         except Exception as e:
             db.session.rollback()
-            flash(f'更新产品失败: {str(e)}', 'error')
-    
+
+            # 判断是否是AJAX请求
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': False, 'message': str(e)}), 500
+            else:
+                flash(f'更新产品失败: {str(e)}', 'error')
+
     categories = Category.query.all()
     return render_template('admin/product_form.html', product=product, categories=categories)
 
@@ -452,12 +470,21 @@ def delete_product_image(image_id):
         db.session.delete(image)
         db.session.commit()
 
-        flash('图片删除成功', 'success')
+        # 判断是否是AJAX请求
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': True, 'message': '图片删除成功'})
+        else:
+            flash('图片删除成功', 'success')
+            return redirect(url_for('admin.product_edit', product_id=product_id))
     except Exception as e:
         db.session.rollback()
-        flash(f'删除失败: {str(e)}', 'error')
 
-    return redirect(url_for('admin.product_edit', product_id=product_id))
+        # 判断是否是AJAX请求
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'message': str(e)}), 500
+        else:
+            flash(f'删除失败: {str(e)}', 'error')
+            return redirect(url_for('admin.product_edit', product_id=product_id))
 
 # 设置主图
 @admin_bp.route('/products/images/<int:image_id>/primary', methods=['POST'])
@@ -466,18 +493,27 @@ def set_primary_image(image_id):
     """设置产品主图"""
     image = ProductImage.query.get_or_404(image_id)
     product_id = image.product_id
-    
+
     try:
         # 取消该产品的所有主图
         ProductImage.query.filter_by(product_id=product_id).update({'is_primary': False})
-        
+
         # 设置当前图片为主图
         image.is_primary = True
         db.session.commit()
-        
-        flash('主图设置成功', 'success')
+
+        # 判断是否是AJAX请求
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': True, 'message': '主图设置成功'})
+        else:
+            flash('主图设置成功', 'success')
+            return redirect(url_for('admin.product_edit', product_id=product_id))
     except Exception as e:
         db.session.rollback()
-        flash(f'设置失败: {str(e)}', 'error')
-    
-    return redirect(url_for('admin.product_edit', product_id=product_id))
+
+        # 判断是否是AJAX请求
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'message': str(e)}), 500
+        else:
+            flash(f'设置失败: {str(e)}', 'error')
+            return redirect(url_for('admin.product_edit', product_id=product_id))
