@@ -5,7 +5,7 @@ from app.services.product_service import ProductService
 from app.services.order_service import OrderService
 from app.services.statistics_service import StatisticsService
 from werkzeug.utils import secure_filename
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
 admin_bp = Blueprint('admin', __name__)
@@ -551,8 +551,6 @@ def statistics():
             # 显示本年数据
             start_date = datetime(year, 1, 1).date()
             end_date = datetime(year, 12, 31).date()
-    
-    from datetime import timedelta
     
     # 获取统计数据
     stats = {

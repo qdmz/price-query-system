@@ -62,7 +62,7 @@
             <div class="col-md-2">
                 <label for="yearSelect" class="form-label">年份</label>
                 <select class="form-select" id="yearSelect" name="year">
-                    {% for y in range(2023, 2025) %}
+                    {% for y in range(2023, current_year + 2) %}
                     <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
                     {% endfor %}
                 </select>
