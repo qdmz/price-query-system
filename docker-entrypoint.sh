@@ -13,7 +13,7 @@ if [ ! -f "$INIT_FLAG_FILE" ]; then
     echo ""
     echo "检测到首次启动，正在初始化数据..."
     echo "----------------------------------------"
-    
+
     # 等待数据库就绪
     echo "等待数据库连接..."
     until python -c "import psycopg2; psycopg2.connect('${DATABASE_URL}')" 2>/dev/null; do
@@ -21,14 +21,14 @@ if [ ! -f "$INIT_FLAG_FILE" ]; then
         sleep 2
     done
     echo "数据库已就绪"
-    
-    # 运行数据初始化脚本
+
+    # 运行Docker专用数据初始化脚本
     echo "运行数据初始化脚本..."
-    python init_data.py
-    
+    python docker_init_data.py
+
     # 创建初始化标志文件
     touch "$INIT_FLAG_FILE"
-    
+
     echo "----------------------------------------"
     echo "数据初始化完成！"
 else
