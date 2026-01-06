@@ -44,6 +44,9 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
+    # 如果没有设置DATABASE_URL环境变量，则降级使用SQLite
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'sqlite:///price_query.db'
 
 class TestingConfig(Config):
     TESTING = True

@@ -26,9 +26,9 @@ RUN mkdir -p app/static/uploads/products \
 EXPOSE 5000
 
 # 设置环境变量
-ENV FLASK_APP=app.py
+ENV FLASK_APP=wsgi.py
 ENV FLASK_ENV=production
 ENV PYTHONUNBUFFERED=1
 
 # 启动命令
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "wsgi:app"]
