@@ -1,0 +1,98 @@
+{% extends "common/base.html" %}
+
+{% block title %}订单成功 - 日用产品批发零售系统{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+                    </div>
+                    <h2 class="mb-3">订单提交成功！</h2>
+                    <p class="text-muted mb-4">感谢您的订购，我们会尽快处理您的订单</p>
+                    
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">订单信息</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>订单号：</strong></td>
+                                    <td>{{ order.order_no }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>客户姓名：</strong></td>
+                                    <td>{{ order.customer_name }}</td>
+                                </tr>
+                                {% if order.customer_phone %}
+                                <tr>
+                                    <td><strong>联系电话：</strong></td>
+                                    <td>{{ order.customer_phone }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <td><strong>订单状态：</strong></td>
+                                    <td>
+                                        <span class="badge bg-warning">待处理</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>订单金额：</strong></td>
+                                    <td class="text-danger fs-5">¥{{ "%.2f"|format(order.total_amount) }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>商品数量：</strong></td>
+                                    <td>{{ order.total_quantity }} 件</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>下单时间：</strong></td>
+                                    <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h6 class="card-title mb-3">订单商品</h6>
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>商品</th>
+                                        <th>货号</th>
+                                        <th>数量</th>
+                                        <th>单价</th>
+                                        <th>小计</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order.items %}
+                                    <tr>
+                                        <td>{{ item.product_name }}</td>
+                                        <td>{{ item.product_code }}</td>
+                                        <td>{{ item.quantity }}</td>
+                                        <td>¥{{ "%.2f"|format(item.unit_price) }}</td>
+                                        <td>¥{{ "%.2f"|format(item.subtotal) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{{ url_for('main.index') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-left"></i> 继续购物
+                        </a>
+                        <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                            <i class="bi bi-search"></i> 查询更多商品
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

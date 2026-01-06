@@ -1,13 +1,13 @@
 [project]
-entrypoint = "price_query_system/app.py"
+entrypoint = "app.py"
 requires = ["python-3.11"]
 
 [dev]
-build = ["bash", "-c", "cd price_query_system && pip install -r requirements.txt"]
-run = ["bash", "-c", "cd price_query_system && python app.py"]
+build = ["pip", "install", "-r", "requirements.txt"]
+run = ["python", "app.py"]
 deps = ["git"]
 
 [deploy]
-build = ["bash", "-c", "cd price_query_system && pip install -r requirements.txt"]
-run = ["bash", "-c", "cd price_query_system && FLASK_ENV=production gunicorn -w 4 -b 0.0.0.0:5000 wsgi:app"]
+build = ["pip", "install", "-r", "requirements.txt"]
+run = ["bash", "-c", "FLASK_ENV=production gunicorn -w 4 -b 0.0.0.0:5000 wsgi:app"]
 deps = ["git"]

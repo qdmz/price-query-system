@@ -1,0 +1,151 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ '编辑' if product else '新增' }}产品{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="bi bi-{{ 'pencil' if product else 'plus-circle' }}"></i> {{ '编辑' if product else '新增' }}产品
+    </h2>
+    <a href="{{ url_for('admin.products') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> 返回
+    </a>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data">
+            <div class="row">
+                <!-- 左侧：基本信息 -->
+                <div class="col-md-8">
+                    <h5 class="mb-3">基本信息</h5>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">货号 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="product_code" 
+                                   value="{{ product.product_code if product else '' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">条码</label>
+                            <input type="text" class="form-control" name="barcode" 
+                                   value="{{ product.barcode if product else '' }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">产品名称 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" 
+                                   value="{{ product.name if product else '' }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">型号</label>
+                            <input type="text" class="form-control" name="model" 
+                                   value="{{ product.model if product else '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">规格</label>
+                            <input type="text" class="form-control" name="specification" 
+                                   value="{{ product.specification if product else '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">单位</label>
+                            <input type="text" class="form-control" name="unit" 
+                                   value="{{ product.unit if product else '件' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">零售价 <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="retail_price" step="0.01" 
+                                   value="{{ '%.2f'|format(product.retail_price) if product else '0.00' }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">批发价 <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="wholesale_price" step="0.01" 
+                                   value="{{ '%.2f'|format(product.wholesale_price) if product else '0.00' }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">批发最小数量</label>
+                            <input type="number" class="form-control" name="wholesale_min_qty" 
+                                   value="{{ product.wholesale_min_qty if product else '1' }}" min="1">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">库存</label>
+                            <input type="number" class="form-control" name="stock" 
+                                   value="{{ product.stock if product else '0' }}" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">分类</label>
+                            <select class="form-select" name="category_id">
+                                <option value="">选择分类</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" 
+                                        {% if product and product.category_id == category.id %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">产品描述</label>
+                            <textarea class="form-control" name="description" rows="4">{{ product.description if product else '' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右侧：图片管理 -->
+                <div class="col-md-4">
+                    <h5 class="mb-3">产品图片</h5>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">上传图片</label>
+                        <input type="file" class="form-control" name="images" multiple accept="image/*">
+                        <small class="text-muted">支持 jpg, png, gif 格式，最大 16MB</small>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">网络图片URL</label>
+                        <textarea class="form-control" name="image_urls" rows="4" 
+                                  placeholder="每行一个URL，自动下载图片"></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">已有图片</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% if product %}
+                                {% for image in product.images %}
+                                <div class="position-relative">
+                                    <img src="{{ image.image_url }}" width="80" height="80" 
+                                         style="object-fit: cover; border-radius: 4px;">
+                                    {% if image.is_primary %}
+                                    <span class="badge bg-primary position-absolute" style="top: 0; left: 0;">主图</span>
+                                    {% endif %}
+                                    <form action="/admin/products/images/{{ image.id }}/delete" method="POST" 
+                                          style="position: absolute; top: 0; right: 0;">
+                                        <button type="submit" class="btn btn-sm btn-danger rounded-circle"
+                                                style="width: 24px; height: 24px; padding: 0;">
+                                            <i class="bi bi-x" style="font-size: 14px;"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        {% if not product %}
+                        <p class="text-muted small">暂无图片</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('admin.products') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> 取消
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> 保存
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "admin/base.html" %}
+
+{% block title %}批量导入产品{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="bi bi-upload"></i> 批量导入产品
+    </h2>
+    <a href="{{ url_for('admin.products') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> 返回产品管理
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-excel"></i> 上传Excel文件</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label class="form-label">选择Excel文件</label>
+                        <input type="file" class="form-control" name="file" 
+                               accept=".xlsx,.xls,.csv" required>
+                        <small class="text-muted">支持 .xlsx, .xls, .csv 格式</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-upload"></i> 开始导入
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Excel文件格式说明</h5>
+            </div>
+            <div class="card-body">
+                <p>Excel文件必须包含以下列（按顺序）：</p>
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th width="30%">列名</th>
+                            <th width="20%">是否必填</th>
+                            <th width="50%">说明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>货号</td>
+                            <td><span class="badge bg-danger">必填</span></td>
+                            <td>产品唯一编号</td>
+                        </tr>
+                        <tr>
+                            <td>条码</td>
+                            <td><span class="badge bg-secondary">可选</span></td>
+                            <td>产品条形码</td>
+                        </tr>
+                        <tr>
+                            <td>产品名称</td>
+                            <td><span class="badge bg-danger">必填</span></td>
+                            <td>产品名称</td>
+                        </tr>
+                        <tr>
+                            <td>型号</td>
+                            <td><span class="badge bg-secondary">可选</span></td>
+                            <td>产品型号</td>
+                        </tr>
+                        <tr>
+                            <td>规格</td>
+                            <td><span class="badge bg-secondary">可选</span></td>
+                            <td>产品规格</td>
+                        </tr>
+                        <tr>
+                            <td>单位</td>
+                            <td><span class="badge bg-secondary">可选</span></td>
+                            <td>计量单位，默认为"件"</td>
+                        </tr>
+                        <tr>
+                            <td>零售价</td>
+                            <td><span class="badge bg-secondary">可选</span></td>
+                            <td>零售价格，默认为0</td>
+                        </tr>
+                        <tr>
+                            <td>批发价</td>
+                            <td><span class="badge bg-secondary">可选</span></td>
+                            <td>批发价格，默认为0</td>
+                        </tr>
+                        <tr>
+                            <td>批发最小数量</td>
+                            <td><span class="badge bg-secondary">可选</span></td>
+                            <td>批发起订数量，默认为1</td>
+                        </tr>
+                        <tr>
+                            <td>库存</td>
+                            <td><span class="badge bg-secondary">可选</span></td>
+                            <td>库存数量，默认为0</td>
+                        </tr>
+                        <tr>
+                            <td>描述</td>
+                            <td><span class="badge bg-secondary">可选</span></td>
+                            <td>产品描述</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="alert alert-info mt-3">
+                    <h6><i class="bi bi-lightbulb"></i> 提示</h6>
+                    <ul class="mb-0">
+                        <li>Excel文件第一行应为列名（表头）</li>
+                        <li>货号必须唯一，重复的货号将被跳过</li>
+                        <li>货号和产品名称为必填项，其他为可选</li>
+                        <li>建议下载下方示例文件作为模板</li>
+                    </ul>
+                </div>
+                
+                <div class="text-center">
+                    <a href="#" class="btn btn-outline-success">
+                        <i class="bi bi-download"></i> 下载示例Excel文件
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-journal-check"></i> 导入历史</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted text-center">暂无导入记录</p>
+            </div>
+        </div>
+        
+        <div class="card shadow mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> 注意事项</h5>
+            </div>
+            <div class="card-body">
+                <ul class="small">
+                    <li>导入前请备份现有数据</li>
+                    <li>导入过程中请勿关闭页面</li>
+                    <li>支持最多导入 1000 条数据</li>
+                    <li>文件大小不超过 10MB</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends "admin/base.html" %}
+
+{% block title %}订单详情 - {{ order.order_no }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="bi bi-receipt"></i> 订单详情
+    </h2>
+    <a href="{{ url_for('admin.orders') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> 返回
+    </a>
+</div>
+
+<div class="row">
+    <!-- 左侧：订单信息 -->
+    <div class="col-lg-8">
+        <!-- 订单基本信息 -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> 订单信息</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td width="30%"><strong>订单号：</strong></td>
+                        <td>{{ order.order_no }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>客户姓名：</strong></td>
+                        <td>{{ order.customer_name }}</td>
+                    </tr>
+                    {% if order.customer_phone %}
+                    <tr>
+                        <td><strong>联系电话：</strong></td>
+                        <td>{{ order.customer_phone }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if order.customer_email %}
+                    <tr>
+                        <td><strong>电子邮箱：</strong></td>
+                        <td>{{ order.customer_email }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if order.customer_address %}
+                    <tr>
+                        <td><strong>收货地址：</strong></td>
+                        <td>{{ order.customer_address }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <td><strong>订单状态：</strong></td>
+                        <td>
+                            {% if order.status == 'pending' %}
+                                <span class="badge bg-warning">待处理</span>
+                            {% elif order.status == 'confirmed' %}
+                                <span class="badge bg-info">已确认</span>
+                            {% elif order.status == 'shipped' %}
+                                <span class="badge bg-primary">已发货</span>
+                            {% elif order.status == 'completed' %}
+                                <span class="badge bg-success">已完成</span>
+                            {% elif order.status == 'cancelled' %}
+                                <span class="badge bg-danger">已取消</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>通知状态：</strong></td>
+                        <td>
+                            {% if order.notified %}
+                                <span class="badge bg-success">已通知</span>
+                            {% else %}
+                                <span class="badge bg-secondary">未通知</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>下单时间：</strong></td>
+                        <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>更新时间：</strong></td>
+                        <td>{{ order.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                    {% if order.notes %}
+                    <tr>
+                        <td><strong>备注：</strong></td>
+                        <td>{{ order.notes }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+        
+        <!-- 订单商品 -->
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-cart3"></i> 订单商品</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>商品名称</th>
+                            <th>货号</th>
+                            <th>数量</th>
+                            <th>单价</th>
+                            <th>小计</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.items %}
+                        <tr>
+                            <td>{{ item.product_name }}</td>
+                            <td>{{ item.product_code }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>¥{{ "%.2f"|format(item.unit_price) }}</td>
+                            <td>¥{{ "%.2f"|format(item.subtotal) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-end"><strong>总计：</strong></td>
+                            <td class="text-danger fs-5">¥{{ "%.2f"|format(order.total_amount) }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 右侧：操作面板 -->
+    <div class="col-lg-4">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-gear"></i> 订单操作</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin.order_update_status', order_id=order.id) }}">
+                    <div class="mb-3">
+                        <label class="form-label">更新订单状态</label>
+                        <select class="form-select" name="status">
+                            <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>待处理</option>
+                            <option value="confirmed" {% if order.status == 'confirmed' %}selected{% endif %}>已确认</option>
+                            <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>已发货</option>
+                            <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>已完成</option>
+                            <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>已取消</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check-circle"></i> 更新状态
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card shadow mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calculator"></i> 订单汇总</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>商品数量：</span>
+                    <strong>{{ order.total_quantity }} 件</strong>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span>订单金额：</span>
+                    <strong class="text-danger fs-4">¥{{ "%.2f"|format(order.total_amount) }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

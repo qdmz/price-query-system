@@ -1,0 +1,240 @@
+{% extends "common/base.html" %}
+
+{% block title %}创建订单 - 日用产品批发零售系统{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">产品查询</a></li>
+            <li class="breadcrumb-item active">创建订单</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-cart3"></i> 订单商品</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>产品</th>
+                                <th>货号</th>
+                                <th>单价</th>
+                                <th>数量</th>
+                                <th>小计</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orderItems">
+                        </tbody>
+                    </table>
+                    <div class="text-center" id="emptyCartMsg" style="display: none;">
+                        <p class="text-muted mb-3">订单为空，请先添加商品</p>
+                        <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                            <i class="bi bi-search"></i> 去选购商品
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> 订单信息</h5>
+                </div>
+                <div class="card-body">
+                    <form id="orderForm">
+                        <div class="mb-3">
+                            <label class="form-label">客户姓名 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="customerName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">联系电话</label>
+                            <input type="tel" class="form-control" id="customerPhone">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">电子邮箱</label>
+                            <input type="email" class="form-control" id="customerEmail">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">收货地址</label>
+                            <textarea class="form-control" id="customerAddress" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">备注</label>
+                            <textarea class="form-control" id="orderNotes" rows="2" placeholder="填写特殊要求或备注信息"></textarea>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <h5>总金额:</h5>
+                            <h5 class="text-danger" id="totalAmount">¥0.00</h5>
+                        </div>
+                        <div class="d-grid mt-3">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle"></i> 提交订单
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 加载中模态框 -->
+<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status"></div>
+                <p>正在提交订单，请稍候...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let cart = [];
+
+// 页面加载时获取购物车数据
+$(document).ready(function() {
+    const cartData = getUrlParameter('cart');
+    if (cartData) {
+        try {
+            cart = JSON.parse(decodeURIComponent(cartData));
+        } catch (e) {
+            console.error('解析购物车数据失败:', e);
+            cart = [];
+        }
+    }
+    renderOrderItems();
+    
+    // 表单提交
+    $('#orderForm').on('submit', function(e) {
+        e.preventDefault();
+        submitOrder();
+    });
+});
+
+// 获取URL参数
+function getUrlParameter(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+
+// 渲染订单商品
+function renderOrderItems() {
+    const orderItems = $('#orderItems');
+    const emptyCartMsg = $('#emptyCartMsg');
+    orderItems.empty();
+    
+    let total = 0;
+    
+    if (cart.length === 0) {
+        emptyCartMsg.show();
+        $('#totalAmount').text('¥0.00');
+        return;
+    }
+    
+    emptyCartMsg.hide();
+    
+    cart.forEach((item, index) => {
+        const subtotal = item.quantity * item.unit_price;
+        total += subtotal;
+        
+        orderItems.append(`
+            <tr>
+                <td>${item.product_name}</td>
+                <td>${item.product_code}</td>
+                <td>¥${item.unit_price.toFixed(2)}</td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" 
+                           style="width: 70px;" 
+                           value="${item.quantity}" 
+                           min="1"
+                           onchange="updateItem(${index}, this.value)">
+                </td>
+                <td>¥${subtotal.toFixed(2)}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-danger" onclick="removeItem(${index})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `);
+    });
+    
+    $('#totalAmount').text('¥' + total.toFixed(2));
+}
+
+// 更新商品数量
+function updateItem(index, quantity) {
+    cart[index].quantity = parseInt(quantity) || 1;
+    renderOrderItems();
+}
+
+// 删除商品
+function removeItem(index) {
+    cart.splice(index, 1);
+    renderOrderItems();
+}
+
+// 提交订单
+function submitOrder() {
+    if (cart.length === 0) {
+        alert('订单为空，请先添加商品！');
+        return;
+    }
+    
+    const customerName = $('#customerName').val().trim();
+    if (!customerName) {
+        alert('请填写客户姓名！');
+        return;
+    }
+    
+    // 显示加载中
+    $('#loadingModal').modal('show');
+    
+    const orderData = {
+        customer_name: customerName,
+        customer_phone: $('#customerPhone').val().trim(),
+        customer_email: $('#customerEmail').val().trim(),
+        customer_address: $('#customerAddress').val().trim(),
+        notes: $('#orderNotes').val().trim(),
+        items: cart.map(item => ({
+            product_id: item.product_id,
+            quantity: item.quantity
+        }))
+    };
+    
+    $.ajax({
+        url: '/api/orders',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(orderData),
+        success: function(response) {
+            $('#loadingModal').modal('hide');
+            
+            if (response.success) {
+                // 跳转到订单成功页面
+                window.location.href = `/order/success/${response.order.order_no}`;
+            } else {
+                alert('提交订单失败：' + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            $('#loadingModal').modal('hide');
+            const errorMsg = xhr.responseJSON ? xhr.responseJSON.message : '网络错误，请稍后重试';
+            alert('提交订单失败：' + errorMsg);
+        }
+    });
+}
+</script>
+{% endblock %}
