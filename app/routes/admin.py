@@ -1,9 +1,11 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app, send_file
 from flask_login import login_required, current_user
 from app.models import db, Product, ProductImage, Category, Order, OrderItem, SystemSetting
 from app.services.product_service import ProductService
 from app.services.order_service import OrderService
+from app.services.statistics_service import StatisticsService
 from werkzeug.utils import secure_filename
+from datetime import datetime
 import os
 
 admin_bp = Blueprint('admin', __name__)
@@ -517,3 +519,169 @@ def set_primary_image(image_id):
         else:
             flash(f'设置失败: {str(e)}', 'error')
             return redirect(url_for('admin.product_edit', product_id=product_id))
+
+# ==================== 数据统计 ====================
+
+@admin_bp.route('/statistics')
+@login_required
+def statistics():
+    """数据统计页面"""
+    from datetime import datetime
+    
+    # 获取筛选参数
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    year = request.args.get('year', type=int, default=datetime.now().year)
+    month = request.args.get('month', type=int)
+    
+    # 转换日期
+    start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date() if start_date_str else None
+    end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date() if end_date_str else None
+    
+    # 如果没有指定日期范围，默认显示本年或本月数据
+    if not start_date and not end_date:
+        if month:
+            # 显示指定月份数据
+            start_date = datetime(year, month, 1).date()
+            if month == 12:
+                end_date = datetime(year + 1, 1, 1).date() - timedelta(days=1)
+            else:
+                end_date = datetime(year, month + 1, 1).date() - timedelta(days=1)
+        else:
+            # 显示本年数据
+            start_date = datetime(year, 1, 1).date()
+            end_date = datetime(year, 12, 31).date()
+    
+    from datetime import timedelta
+    
+    # 获取统计数据
+    stats = {
+        'overview': StatisticsService.get_sales_overview(start_date, end_date),
+        'product_sales_ratio': StatisticsService.get_product_sales_ratio(start_date, end_date),
+        'customer_ranking': StatisticsService.get_customer_ranking(start_date, end_date),
+        'best_selling': StatisticsService.get_best_selling_products(start_date, end_date),
+        'slow_moving': StatisticsService.get_slow_moving_products(),
+        'monthly_sales': StatisticsService.get_monthly_statistics(year, month).get('daily_sales', [])
+    }
+    
+    return render_template('admin/statistics.html', 
+                         stats=stats, 
+                         current_year=year,
+                         current_month=month or datetime.now().month,
+                         start_date=start_date_str,
+                         end_date=end_date_str)
+
+# ==================== 报表下载 ====================
+
+@admin_bp.route('/statistics/export/monthly/<int:year>/<int:month>')
+@login_required
+def export_monthly_report(year, month):
+    """导出月报表"""
+    try:
+        file_path = StatisticsService.export_monthly_report(year, month)
+        return send_file(file_path,
+                        as_attachment=True,
+                        download_name=f'月报表_{year}年{month}月.xlsx',
+                        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    except Exception as e:
+        flash(f'导出失败: {str(e)}', 'error')
+        return redirect(url_for('admin.statistics'))
+
+@admin_bp.route('/statistics/export/product-sales')
+@login_required
+def export_product_sales():
+    """导出产品销售报表"""
+    try:
+        start_date_str = request.args.get('start_date')
+        end_date_str = request.args.get('end_date')
+        
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date() if start_date_str else None
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date() if end_date_str else None
+        
+        file_path = StatisticsService.export_product_sales(start_date, end_date)
+        return send_file(file_path,
+                        as_attachment=True,
+                        download_name=f'产品销售报表_{datetime.now().strftime("%Y%m%d")}.xlsx',
+                        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    except Exception as e:
+        flash(f'导出失败: {str(e)}', 'error')
+        return redirect(url_for('admin.statistics'))
+
+@admin_bp.route('/statistics/export/customer-ranking')
+@login_required
+def export_customer_ranking():
+    """导出客户消费排名报表"""
+    try:
+        start_date_str = request.args.get('start_date')
+        end_date_str = request.args.get('end_date')
+        
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date() if start_date_str else None
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date() if end_date_str else None
+        
+        file_path = StatisticsService.export_customer_ranking(start_date, end_date)
+        return send_file(file_path,
+                        as_attachment=True,
+                        download_name=f'客户消费排名_{datetime.now().strftime("%Y%m%d")}.xlsx',
+                        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    except Exception as e:
+        flash(f'导出失败: {str(e)}', 'error')
+        return redirect(url_for('admin.statistics'))
+
+@admin_bp.route('/statistics/export/best-selling')
+@login_required
+def export_best_selling():
+    """导出畅销品报表"""
+    try:
+        from datetime import timedelta
+        
+        year = request.args.get('year', type=int)
+        month = request.args.get('month', type=int)
+        start_date_str = request.args.get('start_date')
+        end_date_str = request.args.get('end_date')
+        
+        # 根据参数确定日期范围
+        if start_date_str and end_date_str:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        elif year and month:
+            start_date = datetime(year, month, 1).date()
+            if month == 12:
+                end_date = datetime(year + 1, 1, 1).date() - timedelta(days=1)
+            else:
+                end_date = datetime(year, month + 1, 1).date() - timedelta(days=1)
+        else:
+            # 默认当前月份
+            now = datetime.now()
+            start_date = datetime(now.year, now.month, 1).date()
+            if now.month == 12:
+                end_date = datetime(now.year + 1, 1, 1).date() - timedelta(days=1)
+            else:
+                end_date = datetime(now.year, now.month + 1, 1).date() - timedelta(days=1)
+        
+        data = StatisticsService.get_best_selling_products(start_date, end_date)
+        file_path = StatisticsService.export_to_excel(data, f'畅销品报表_{datetime.now().strftime("%Y%m%d")}.xlsx')
+        
+        return send_file(file_path,
+                        as_attachment=True,
+                        download_name=f'畅销品报表_{datetime.now().strftime("%Y%m%d")}.xlsx',
+                        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    except Exception as e:
+        flash(f'导出失败: {str(e)}', 'error')
+        return redirect(url_for('admin.statistics'))
+
+@admin_bp.route('/statistics/export/slow-moving')
+@login_required
+def export_slow_moving():
+    """导出滞销品报表"""
+    try:
+        data = StatisticsService.get_slow_moving_products()
+        file_path = StatisticsService.export_to_excel(data, f'滞销品报表_{datetime.now().strftime("%Y%m%d")}.xlsx')
+        
+        return send_file(file_path,
+                        as_attachment=True,
+                        download_name=f'滞销品报表_{datetime.now().strftime("%Y%m%d")}.xlsx',
+                        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    except Exception as e:
+        flash(f'导出失败: {str(e)}', 'error')
+        return redirect(url_for('admin.statistics'))
+
