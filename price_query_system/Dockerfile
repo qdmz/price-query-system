@@ -22,6 +22,10 @@ COPY . .
 RUN mkdir -p app/static/uploads/products \
     && mkdir -p app/static/uploads/orders
 
+# 复制并设置entrypoint脚本执行权限
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
+
 # 暴露端口
 EXPOSE 5000
 
@@ -30,5 +34,5 @@ ENV FLASK_APP=wsgi.py
 ENV FLASK_ENV=production
 ENV PYTHONUNBUFFERED=1
 
-# 启动命令
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "wsgi:app"]
+# 设置entrypoint
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
