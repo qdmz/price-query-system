@@ -184,7 +184,7 @@ def test_setting(setting_type):
         elif setting_type == 'sms':
             to_phone = request.form.get('test_phone')
             if to_phone:
-                success = notification.send_sms_notification(
+                success = notification.send_sms_notification_test(
                     to_phone,
                     '这是一条测试短信。'
                 )

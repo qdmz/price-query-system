@@ -16,7 +16,7 @@ class OrderService:
     @staticmethod
     def create_order(data):
         """创建订单"""
-        from flask import g
+        from flask import g, request
         
         # 生成订单号
         order_no = OrderService.generate_order_no()
@@ -48,6 +48,15 @@ class OrderService:
                 'subtotal': subtotal
             })
         
+        # 获取当前用户ID（如果已登录）
+        user_id = None
+        try:
+            from flask_login import current_user
+            if current_user and current_user.is_authenticated:
+                user_id = current_user.id
+        except:
+            pass
+        
         # 创建订单
         order = Order(
             order_no=order_no,
@@ -58,7 +67,7 @@ class OrderService:
             total_amount=total_amount,
             total_quantity=total_quantity,
             notes=data.get('notes'),
-            user_id=g.user.id if g.user.is_authenticated else None
+            user_id=user_id
         )
         
         db.session.add(order)

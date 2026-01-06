@@ -171,21 +171,36 @@ class NotificationService:
     def notify_new_order(order):
         """发送新订单通知"""
         success = False
+        errors = []
 
         # 发送邮件
-        email_success = NotificationService.send_email_notification(order)
-        if email_success:
-            success = True
+        try:
+            email_success = NotificationService.send_email_notification(order)
+            if email_success:
+                success = True
+                print("✓ 邮件通知发送成功")
+            else:
+                errors.append("邮件通知发送失败")
+        except Exception as e:
+            errors.append(f"邮件通知异常: {str(e)}")
 
         # 发送短信
-        sms_success = NotificationService.send_sms_notification(order)
-        if sms_success:
-            success = True
+        try:
+            sms_success = NotificationService.send_sms_notification(order)
+            if sms_success:
+                success = True
+                print("✓ 短信通知发送成功")
+            else:
+                errors.append("短信通知发送失败")
+        except Exception as e:
+            errors.append(f"短信通知异常: {str(e)}")
 
-        # 标记为已通知
+        # 标记为已通知（至少有一个通知成功）
         if success:
             order.notified = True
             db.session.commit()
+        elif errors:
+            print(f"[通知服务] 所有通知失败: {', '.join(errors)}")
 
         return success
 
@@ -250,7 +265,7 @@ class NotificationService:
             return False
 
     @staticmethod
-    def send_sms_notification(to_phone, message):
+    def send_sms_notification_test(to_phone, message):
         """发送短信（测试用）"""
         try:
             # 获取短信配置
