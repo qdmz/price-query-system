@@ -1,0 +1,145 @@
+{% extends "admin/base.html" %}
+
+{% block title %}仪表盘{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">
+    <i class="bi bi-speedometer2"></i> 仪表盘
+</h2>
+
+<!-- 统计卡片 -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card bg-primary text-white mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">总产品数</h6>
+                        <h3>{{ stats.products.total }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-box-seam" style="font-size: 2.5rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+                <small>
+                    <i class="bi bi-check-circle"></i> 上架: {{ stats.products.active }} | 
+                    <i class="bi bi-exclamation-circle"></i> 缺货: {{ stats.products.out_of_stock }}
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-success text-white mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">总订单数</h6>
+                        <h3>{{ stats.orders.total_orders }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-receipt" style="font-size: 2.5rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+                <small>
+                    <i class="bi bi-clock"></i> 待处理: {{ stats.orders.pending_orders }} | 
+                    <i class="bi bi-check2-circle"></i> 已完成: {{ stats.orders.completed_orders }}
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-info text-white mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">总销售额</h6>
+                        <h3>¥{{ "%.0f"|format(stats.orders.total_sales) }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-currency-yen" style="font-size: 2.5rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+                <small>
+                    <i class="bi bi-cart-check"></i> 已确认订单销售额
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-warning text-white mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title">产品分类</h6>
+                        <h3>{{ stats.categories }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-tags" style="font-size: 2.5rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+                <small>
+                    <i class="bi bi-folder"></i> 活跃分类数
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 最近订单 -->
+<div class="card shadow">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> 最近订单</h5>
+        <a href="{{ url_for('admin.orders') }}" class="btn btn-sm btn-outline-primary">
+            查看全部 <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>订单号</th>
+                        <th>客户姓名</th>
+                        <th>联系电话</th>
+                        <th>商品数量</th>
+                        <th>订单金额</th>
+                        <th>状态</th>
+                        <th>下单时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if recent_orders %}
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td><a href="{{ url_for('admin.order_detail', order_id=order.id) }}">{{ order.order_no }}</a></td>
+                            <td>{{ order.customer_name }}</td>
+                            <td>{{ order.customer_phone or '-' }}</td>
+                            <td>{{ order.total_quantity }}</td>
+                            <td class="text-danger">¥{{ "%.2f"|format(order.total_amount) }}</td>
+                            <td>
+                                {% if order.status == 'pending' %}
+                                    <span class="badge bg-warning">待处理</span>
+                                {% elif order.status == 'confirmed' %}
+                                    <span class="badge bg-info">已确认</span>
+                                {% elif order.status == 'shipped' %}
+                                    <span class="badge bg-primary">已发货</span>
+                                {% elif order.status == 'completed' %}
+                                    <span class="badge bg-success">已完成</span>
+                                {% elif order.status == 'cancelled' %}
+                                    <span class="badge bg-danger">已取消</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">暂无订单</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

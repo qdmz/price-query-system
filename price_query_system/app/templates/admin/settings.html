@@ -1,0 +1,126 @@
+{% extends "admin/base.html" %}
+
+{% block title %}系统设置{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-gear"></i> 系统设置</h2>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-bell"></i> 通知设置</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin.settings') }}">
+                    <div class="mb-4">
+                        <h6 class="mb-3">邮件通知</h6>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="email_enabled" name="email_enabled" 
+                                   {% if settings.email_enabled == 'true' %}checked{% endif %} value="true">
+                            <label class="form-check-label" for="email_enabled">启用邮件通知</label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">通知邮箱列表</label>
+                            <textarea class="form-control" name="notification_emails" rows="2" 
+                                      placeholder="多个邮箱用逗号分隔">{{ settings.notification_emails }}</textarea>
+                            <small class="text-muted">当有新订单时，系统将发送邮件通知到以上邮箱地址</small>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="mb-4">
+                        <h6 class="mb-3">短信通知</h6>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="sms_enabled" name="sms_enabled" 
+                                   {% if settings.sms_enabled == 'true' %}checked{% endif %} value="true">
+                            <label class="form-check-label" for="sms_enabled">启用短信通知</label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">管理员手机号</label>
+                            <textarea class="form-control" name="admin_phones" rows="2" 
+                                      placeholder="多个手机号用逗号分隔">{{ settings.admin_phones }}</textarea>
+                            <small class="text-muted">当有新订单时，系统将发送短信通知到以上手机号</small>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> 保存设置
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-building"></i> 公司信息</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin.settings') }}">
+                    <div class="mb-3">
+                        <label class="form-label">公司名称</label>
+                        <input type="text" class="form-control" name="company_name" 
+                               value="{{ settings.company_name or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">联系电话</label>
+                        <input type="tel" class="form-control" name="company_phone" 
+                               value="{{ settings.company_phone or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">公司地址</label>
+                        <textarea class="form-control" name="company_address" rows="2">{{ settings.company_address or '' }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> 保存设置
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> 配置说明</h5>
+            </div>
+            <div class="card-body">
+                <h6>邮件通知配置</h6>
+                <p class="text-muted small">
+                    需要在应用配置文件中设置SMTP服务器信息：
+                    <ul>
+                        <li>MAIL_SERVER</li>
+                        <li>MAIL_PORT</li>
+                        <li>MAIL_USERNAME</li>
+                        <li>MAIL_PASSWORD</li>
+                    </ul>
+                </p>
+                
+                <hr>
+                
+                <h6>短信通知配置</h6>
+                <p class="text-muted small">
+                    需要在应用配置文件中设置短信API信息：
+                    <ul>
+                        <li>SMS_API_URL</li>
+                        <li>SMS_API_KEY</li>
+                    </ul>
+                </p>
+            </div>
+        </div>
+        
+        <div class="card shadow mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-shield-lock"></i> 安全</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">建议定期修改管理员密码</p>
+                <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-key"></i> 修改密码
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,443 @@
+{% extends "common/base.html" %}
+
+{% block title %}产品查询 - 日用产品批发零售系统{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- 搜索区域 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h4 class="card-title mb-3">
+                        <i class="bi bi-search"></i> 产品查询
+                    </h4>
+                    <form id="searchForm">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <input type="text" class="form-control form-control-lg" 
+                                       id="searchInput" 
+                                       placeholder="输入货号、条码、产品名称、型号进行搜索..."
+                                       value="{{ request.args.get('q', '') }}">
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-lg" id="categorySelect">
+                                    <option value="">全部分类</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category.id }}" 
+                                            {% if request.args.get('category_id')|int == category.id %}selected{% endif %}>
+                                        {{ category.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 搜索结果 -->
+    <div id="searchResults" class="d-none">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5>搜索结果 <span class="badge bg-primary" id="resultCount">0</span></h5>
+            <button class="btn btn-outline-secondary btn-sm" onclick="clearSearch()">
+                <i class="bi bi-x-circle"></i> 清空
+            </button>
+        </div>
+        <div class="row" id="productGrid">
+            <!-- 产品卡片将通过JS动态加载 -->
+        </div>
+        <!-- 分页 -->
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center" id="pagination">
+            </ul>
+        </nav>
+    </div>
+
+    <!-- 热门产品 -->
+    <div id="hotProducts">
+        <h5 class="mb-3">
+            <i class="bi bi-fire text-danger"></i> 热门产品
+        </h5>
+        <div class="row" id="hotProductGrid">
+            <!-- 热门产品将通过JS动态加载 -->
+        </div>
+    </div>
+</div>
+
+<!-- 产品详情模态框 -->
+<div class="modal fade" id="productModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productModalTitle">产品详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div id="productImages">
+                            <!-- 图片轮播 -->
+                            <div id="imageCarousel" class="carousel slide" data-bs-ride="carousel">
+                                <div class="carousel-inner" id="carouselInner">
+                                </div>
+                                <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon"></span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-bordered">
+                            <tbody id="productDetails">
+                            </tbody>
+                        </table>
+                        <div class="mt-3">
+                            <h5 class="text-danger price-tag" id="modalPrice"></h5>
+                            <p class="text-muted small" id="modalWholesaleInfo"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="addToCart()">
+                    <i class="bi bi-cart-plus"></i> 加入订单
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 购物车模态框 -->
+<div class="modal fade" id="cartModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">购物车</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>产品</th>
+                            <th>货号</th>
+                            <th>单价</th>
+                            <th>数量</th>
+                            <th>小计</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cartItems">
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <div>
+                    <h5>总计: <span class="text-danger" id="cartTotal">¥0.00</span></h5>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">继续购物</button>
+                    <button type="button" class="btn btn-primary" onclick="proceedToOrder()">结算</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 浮动购物车按钮 -->
+<button class="btn btn-primary position-fixed rounded-circle" 
+        style="bottom: 30px; right: 30px; width: 60px; height: 60px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 1000;"
+        onclick="showCart()" data-bs-toggle="modal" data-bs-target="#cartModal">
+    <i class="bi bi-cart3" style="font-size: 24px;"></i>
+    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cartBadge">0</span>
+</button>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let cart = [];
+let currentProduct = null;
+
+// 页面加载时获取热门产品
+$(document).ready(function() {
+    loadHotProducts();
+    
+    // 搜索表单提交
+    $('#searchForm').on('submit', function(e) {
+        e.preventDefault();
+        searchProducts(1);
+    });
+});
+
+// 加载热门产品
+function loadHotProducts() {
+    $.get('/api/products/search?page=1&per_page=8', function(data) {
+        if (data.success) {
+            $('#resultCount').text(data.total);
+            renderProducts(data.products, 'hotProductGrid');
+        }
+    });
+}
+
+// 搜索产品
+function searchProducts(page) {
+    const query = $('#searchInput').val();
+    const categoryId = $('#categorySelect').val();
+    
+    let url = `/api/products/search?page=${page}&q=${encodeURIComponent(query)}`;
+    if (categoryId) {
+        url += `&category_id=${categoryId}`;
+    }
+    
+    $.get(url, function(data) {
+        if (data.success) {
+            $('#searchResults').removeClass('d-none');
+            $('#hotProducts').addClass('d-none');
+            $('#resultCount').text(data.total);
+            renderProducts(data.products, 'productGrid');
+            renderPagination(data.pages, data.current_page);
+        }
+    });
+}
+
+// 渲染产品卡片
+function renderProducts(products, containerId) {
+    const container = $('#' + containerId);
+    container.empty();
+    
+    products.forEach(product => {
+        const imageHtml = product.primary_image 
+            ? `<img src="${product.primary_image}" class="card-img-top product-image" alt="${product.name}">`
+            : `<div class="card-img-top product-image d-flex align-items-center justify-content-center bg-light">
+                 <i class="bi bi-image" style="font-size: 3rem; color: #ccc;"></i>
+               </div>`;
+        
+        const card = `
+            <div class="col-md-3 mb-4">
+                <div class="card product-card h-100" onclick="showProductDetail(${product.id})">
+                    ${imageHtml}
+                    <div class="card-body">
+                        <h6 class="card-title">${product.name}</h6>
+                        <p class="card-text small text-muted mb-1">
+                            <strong>货号:</strong> ${product.product_code}
+                        </p>
+                        <p class="card-text small text-muted mb-1">
+                            ${product.specification ? '<strong>规格:</strong> ' + product.specification : ''}
+                        </p>
+                        <p class="card-text price-tag">¥${product.retail_price.toFixed(2)}</p>
+                        <p class="card-text small text-success">
+                            批发价: ¥${product.wholesale_price.toFixed(2)} (${product.wholesale_min_qty}件起)
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.append(card);
+    });
+}
+
+// 渲染分页
+function renderPagination(pages, current) {
+    const pagination = $('#pagination');
+    pagination.empty();
+    
+    if (pages <= 1) return;
+    
+    // 上一页
+    pagination.append(`
+        <li class="page-item ${current == 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="searchProducts(${current - 1}); return false;">&laquo;</a>
+        </li>
+    `);
+    
+    // 页码
+    for (let i = 1; i <= pages; i++) {
+        pagination.append(`
+            <li class="page-item ${current == i ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="searchProducts(${i}); return false;">${i}</a>
+            </li>
+        `);
+    }
+    
+    // 下一页
+    pagination.append(`
+        <li class="page-item ${current == pages ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="searchProducts(${current + 1}); return false;">&raquo;</a>
+        </li>
+    `);
+}
+
+// 显示产品详情
+function showProductDetail(productId) {
+    $.get(`/api/products/${productId}`, function(data) {
+        if (data.success) {
+            const product = data.product;
+            currentProduct = product;
+            
+            $('#productModalTitle').text(product.name);
+            
+            // 图片轮播
+            const carouselInner = $('#carouselInner');
+            carouselInner.empty();
+            
+            if (product.images && product.images.length > 0) {
+                product.images.forEach((img, index) => {
+                    carouselInner.append(`
+                        <div class="carousel-item ${index == 0 ? 'active' : ''}">
+                            <img src="${img}" class="d-block w-100" style="height: 300px; object-fit: contain;" alt="${product.name}">
+                        </div>
+                    `);
+                });
+            } else {
+                carouselInner.append(`
+                    <div class="carousel-item active">
+                        <div class="d-flex align-items-center justify-content-center bg-light" style="height: 300px;">
+                            <i class="bi bi-image" style="font-size: 5rem; color: #ccc;"></i>
+                        </div>
+                    </div>
+                `);
+            }
+            
+            // 产品详情
+            const details = `
+                <tr><td>货号</td><td>${product.product_code}</td></tr>
+                ${product.barcode ? `<tr><td>条码</td><td>${product.barcode}</td></tr>` : ''}
+                <tr><td>型号</td><td>${product.model || '-'}</td></tr>
+                <tr><td>规格</td><td>${product.specification || '-'}</td></tr>
+                <tr><td>单位</td><td>${product.unit || '件'}</td></tr>
+                <tr><td>库存</td><td>${product.stock}</td></tr>
+                ${product.description ? `<tr><td colspan="2">${product.description}</td></tr>` : ''}
+            `;
+            $('#productDetails').html(details);
+            
+            $('#modalPrice').html(`零售价: ¥${product.retail_price.toFixed(2)}`);
+            $('#modalWholesaleInfo').text(`批发价: ¥${product.wholesale_price.toFixed(2)} (${product.wholesale_min_qty}件起批)`);
+            
+            $('#productModal').modal('show');
+        }
+    });
+}
+
+// 添加到购物车
+function addToCart() {
+    if (!currentProduct) return;
+    
+    const existingItem = cart.find(item => item.product_id === currentProduct.id);
+    
+    if (existingItem) {
+        existingItem.quantity += 1;
+    } else {
+        cart.push({
+            product_id: currentProduct.id,
+            product_name: currentProduct.name,
+            product_code: currentProduct.product_code,
+            quantity: 1,
+            unit_price: currentProduct.retail_price
+        });
+    }
+    
+    updateCartBadge();
+    $('#productModal').modal('hide');
+    
+    // 显示提示
+    const toast = $('<div class="toast align-items-center text-white bg-success border-0 position-fixed" style="bottom: 100px; right: 30px; z-index: 1050;"><div class="d-flex"><div class="toast-body">已添加到购物车</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>');
+    $('body').append(toast);
+    toast.toast({ delay: 2000 }).toast('show');
+}
+
+// 更新购物车徽章
+function updateCartBadge() {
+    const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+    $('#cartBadge').text(count);
+}
+
+// 显示购物车
+function showCart() {
+    renderCartItems();
+}
+
+// 渲染购物车项目
+function renderCartItems() {
+    const cartItems = $('#cartItems');
+    cartItems.empty();
+    
+    let total = 0;
+    
+    if (cart.length === 0) {
+        cartItems.append('<tr><td colspan="6" class="text-center text-muted">购物车是空的</td></tr>');
+    } else {
+        cart.forEach((item, index) => {
+            const subtotal = item.quantity * item.unit_price;
+            total += subtotal;
+            
+            cartItems.append(`
+                <tr>
+                    <td>${item.product_name}</td>
+                    <td>${item.product_code}</td>
+                    <td>¥${item.unit_price.toFixed(2)}</td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm" 
+                               style="width: 70px;" 
+                               value="${item.quantity}" 
+                               min="1"
+                               onchange="updateCartItem(${index}, this.value)">
+                    </td>
+                    <td>¥${subtotal.toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart(${index})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `);
+        });
+    }
+    
+    $('#cartTotal').text('¥' + total.toFixed(2));
+}
+
+// 更新购物车项
+function updateCartItem(index, quantity) {
+    cart[index].quantity = parseInt(quantity) || 1;
+    renderCartItems();
+    updateCartBadge();
+}
+
+// 从购物车删除
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    renderCartItems();
+    updateCartBadge();
+}
+
+// 结算
+function proceedToOrder() {
+    if (cart.length === 0) {
+        alert('购物车是空的！');
+        return;
+    }
+    
+    // 跳转到订单页面
+    window.location.href = '/order?cart=' + encodeURIComponent(JSON.stringify(cart));
+}
+
+// 清空搜索
+function clearSearch() {
+    $('#searchInput').val('');
+    $('#categorySelect').val('');
+    $('#searchResults').addClass('d-none');
+    $('#hotProducts').removeClass('d-none');
+}
+</script>
+{% endblock %}

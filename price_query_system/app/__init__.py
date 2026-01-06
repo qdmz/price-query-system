@@ -1,0 +1,57 @@
+from flask import Flask
+from flask_login import LoginManager
+from flask_mail import Mail
+from flask_migrate import Migrate
+from app.models import db, User
+import os
+
+# 初始化扩展
+login_manager = LoginManager()
+mail = Mail()
+migrate = Migrate()
+
+def create_app(config_name='default'):
+    app = Flask(__name__)
+    
+    # 加载配置
+    from config import config
+    app.config.from_object(config[config_name])
+    
+    # 确保上传目录存在
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'products'), exist_ok=True)
+    os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'orders'), exist_ok=True)
+    
+    # 初始化扩展
+    db.init_app(app)
+    login_manager.init_app(app)
+    mail.init_app(app)
+    migrate.init_app(app, db)
+    
+    # 配置登录管理器
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message = '请先登录'
+    
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+    
+    # 注册蓝图
+    from app.routes.main import main_bp
+    from app.routes.auth import auth_bp
+    from app.routes.api import api_bp
+    from app.routes.admin import admin_bp
+    
+    app.register_blueprint(main_bp)
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(api_bp, url_prefix='/api')
+    app.register_blueprint(admin_bp, url_prefix='/admin')
+    
+    # 创建数据库表
+    with app.app_context():
+        db.create_all()
+        # 创建默认管理员账户
+        from app.services.init_service import create_default_admin
+        create_default_admin()
+    
+    return app
