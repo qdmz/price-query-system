@@ -45,11 +45,13 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     DEBUG = False
     # 如果没有设置DATABASE_URL环境变量，则降级使用SQLite
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///price_query.db'
-    # 在生产环境（FaaS）使用临时目录存储上传文件
+    # 使用临时目录确保数据可以保存
     import tempfile
-    UPLOAD_FOLDER = os.path.join(tempfile.gettempdir(), 'uploads')
+    temp_dir = tempfile.gettempdir()
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        f'sqlite:///{os.path.join(temp_dir, "price_query.db")}'
+    # 在生产环境（FaaS）使用临时目录存储上传文件
+    UPLOAD_FOLDER = os.path.join(temp_dir, 'uploads')
 
 class TestingConfig(Config):
     TESTING = True

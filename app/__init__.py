@@ -54,11 +54,13 @@ def create_app(config_name='default'):
     from app.routes.auth import auth_bp
     from app.routes.api import api_bp
     from app.routes.admin import admin_bp
+    from app.routes.system_settings import system_bp
     
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(system_bp)
     
     # 创建数据库表
     with app.app_context():

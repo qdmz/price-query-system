@@ -1,0 +1,205 @@
+{% extends "admin/base.html" %}
+
+{% block title %}系统设置 - {{ super() }}{% endblock %}
+
+{% block page_header %}
+<h1><i class="bi bi-gear-fill"></i> 系统设置</h1>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="list-group">
+            <a href="#mail-settings" class="list-group-item list-group-item-action active">
+                <i class="bi bi-envelope"></i> 邮件通知
+            </a>
+            <a href="#sms-settings" class="list-group-item list-group-item-action">
+                <i class="bi bi-phone"></i> 短信通知
+            </a>
+            <a href="#system-settings" class="list-group-item list-group-item-action">
+                <i class="bi bi-sliders"></i> 基本设置
+            </a>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6 class="card-title">提示</h6>
+                <p class="card-text small text-muted">
+                    配置保存后会立即生效。建议先使用测试功能验证配置正确性。
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <form method="POST" id="settings-form">
+            <!-- 邮件通知设置 -->
+            <div class="card mb-4" id="mail-settings">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-envelope"></i> 邮件通知设置</h5>
+                </div>
+                <div class="card-body">
+                    {% for field in settings_config.mail.fields %}
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ field.key }}">{{ field.label }}</label>
+                        {% if field.type == 'select' %}
+                        <select class="form-select" id="{{ field.key }}" name="{{ field.key }}">
+                            <option value="true" {% if settings_data.get(field.key) == 'true' %}selected{% endif %}>是</option>
+                            <option value="false" {% if settings_data.get(field.key) == 'false' or not settings_data.get(field.key) %}selected{% endif %}>否</option>
+                        </select>
+                        {% elif field.type == 'password' %}
+                        <input type="password" class="form-control" id="{{ field.key }}" name="{{ field.key }}" 
+                               placeholder="{{ field.placeholder or '' }}" value="{{ settings_data.get(field.key, '') }}">
+                        {% else %}
+                        <input type="{{ field.type }}" class="form-control" id="{{ field.key }}" name="{{ field.key }}" 
+                               placeholder="{{ field.placeholder or '' }}" value="{{ settings_data.get(field.key, '') }}">
+                        {% endif %}
+                        {% if field.description %}
+                        <small class="form-text text-muted">{{ field.description }}</small>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> 保存设置
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="testMailSettings()">
+                        <i class="bi bi-send"></i> 测试邮件
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 短信通知设置 -->
+            <div class="card mb-4" id="sms-settings">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-phone"></i> 短信通知设置</h5>
+                </div>
+                <div class="card-body">
+                    {% for field in settings_config.sms.fields %}
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ field.key }}">{{ field.label }}</label>
+                        {% if field.type == 'select' %}
+                        <select class="form-select" id="{{ field.key }}" name="{{ field.key }}">
+                            <option value="true" {% if settings_data.get(field.key) == 'true' %}selected{% endif %}>是</option>
+                            <option value="false" {% if settings_data.get(field.key) == 'false' or not settings_data.get(field.key) %}selected{% endif %}>否</option>
+                        </select>
+                        {% elif field.type == 'password' %}
+                        <input type="password" class="form-control" id="{{ field.key }}" name="{{ field.key }}" 
+                               placeholder="{{ field.placeholder or '' }}" value="{{ settings_data.get(field.key, '') }}">
+                        {% else %}
+                        <input type="{{ field.type }}" class="form-control" id="{{ field.key }}" name="{{ field.key }}" 
+                               placeholder="{{ field.placeholder or '' }}" value="{{ settings_data.get(field.key, '') }}">
+                        {% endif %}
+                        {% if field.description %}
+                        <small class="form-text text-muted">{{ field.description }}</small>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> 保存设置
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="testSmsSettings()">
+                        <i class="bi bi-send"></i> 测试短信
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 系统设置 -->
+            <div class="card mb-4" id="system-settings">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-sliders"></i> 基本设置</h5>
+                </div>
+                <div class="card-body">
+                    {% for field in settings_config.system.fields %}
+                    <div class="mb-3">
+                        <label class="form-label" for="{{ field.key }}">{{ field.label }}</label>
+                        <input type="{{ field.type }}" class="form-control" id="{{ field.key }}" name="{{ field.key }}" 
+                               placeholder="{{ field.placeholder or '' }}" value="{{ settings_data.get(field.key, '') }}">
+                        {% if field.description %}
+                        <small class="form-text text-muted">{{ field.description }}</small>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> 保存设置
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 邮件测试模态框 -->
+<div class="modal fade" id="mailTestModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">测试邮件发送</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="mail-test-form" action="{{ url_for('system.test_setting', setting_type='mail') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">测试邮箱</label>
+                        <input type="email" class="form-control" name="test_email" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitMailTest()">发送测试邮件</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 短信测试模态框 -->
+<div class="modal fade" id="smsTestModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">测试短信发送</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="sms-test-form" action="{{ url_for('system.test_setting', setting_type='sms') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">测试手机号</label>
+                        <input type="tel" class="form-control" name="test_phone" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitSmsTest()">发送测试短信</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function testMailSettings() {
+    var modal = new bootstrap.Modal(document.getElementById('mailTestModal'));
+    modal.show();
+}
+
+function testSmsSettings() {
+    var modal = new bootstrap.Modal(document.getElementById('smsTestModal'));
+    modal.show();
+}
+
+function submitMailTest() {
+    var form = document.getElementById('mail-test-form');
+    form.submit();
+}
+
+function submitSmsTest() {
+    var form = document.getElementById('sms-test-form');
+    form.submit();
+}
+</script>
+{% endblock %}
