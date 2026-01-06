@@ -1,43 +1,30 @@
 #!/usr/bin/env python
-"""
-创建产品占位图片
-"""
+"""创建产品图片占位图"""
 from PIL import Image, ImageDraw, ImageFont
 import os
 
-# 创建占位图片目录
-images_dir = os.path.join(os.path.dirname(__file__), 'app', 'static', 'images')
-os.makedirs(images_dir, exist_ok=True)
+# 创建占位图目录
+os.makedirs('app/static/images', exist_ok=True)
 
-# 创建占位图片
+# 创建400x400的占位图
 width, height = 400, 400
-image = Image.new('RGB', (width, height), color='#e0e0e0')
-draw = ImageDraw.Draw(image)
+img = Image.new('RGB', (width, height), color='#f8f9fa')
+draw = ImageDraw.Draw(img)
 
 # 绘制边框
-draw.rectangle([(10, 10), (width-10, height-10)], outline='#cccccc', width=2)
+draw.rectangle([(10, 10), (width-10, height-10)], outline='#dee2e6', width=2)
 
-# 绘制文字（居中）
-try:
-    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 30)
-except:
-    font = ImageFont.load_default()
+# 绘制中间的图标（简单的相机图标）
+draw.rectangle([(160, 140), (240, 220)], outline='#6c757d', width=3)
+draw.rectangle([(170, 230), (230, 235)], fill='#6c757d')
+draw.circle((200, 180), 10, outline='#6c757d', width=3)
 
+# 添加文字
 text = "产品图片"
-text_bbox = draw.textbbox((0, 0), text, font=font)
-text_width = text_bbox[2] - text_bbox[0]
-text_height = text_bbox[3] - text_bbox[1]
-text_x = (width - text_width) / 2
-text_y = (height - text_height) / 2
-draw.text((text_x, text_y), text, fill='#666666', font=font)
+font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 20)
+text_width = draw.textlength(text, font=font)
+draw.text(((width - text_width) / 2, 260), text, fill='#6c757d', font=font)
 
 # 保存图片
-output_file = os.path.join(images_dir, 'product-placeholder.jpg')
-image.save(output_file, 'JPEG', quality=90)
-
-print("=" * 60)
-print("占位图片创建成功！")
-print("=" * 60)
-print(f"文件路径: {output_file}")
-print(f"尺寸: {width}x{height}")
-print("=" * 60)
+img.save('app/static/images/product-placeholder.jpg', 'JPEG', quality=90)
+print("✓ 产品图片占位图已创建: app/static/images/product-placeholder.jpg")

@@ -1,0 +1,7 @@
+<!-- 简单的SVG占位图 -->
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#f8f9fa"/>
+  <text x="200" y="200" font-family="Arial, sans-serif" font-size="24" fill="#6c757d" text-anchor="middle" dominant-baseline="middle">
+    产品图片占位符
+  </text>
+</svg>
