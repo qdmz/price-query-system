@@ -423,20 +423,61 @@ def settings():
 def delete_product_image(image_id):
     """删除产品图片"""
     image = ProductImage.query.get_or_404(image_id)
-    
+    product_id = image.product_id
+
     try:
         # 删除物理文件
-        image_path = os.path.join(current_app.root_path, image.image_url.lstrip('/'))
+        # image.image_url 格式: /static/uploads/products/xxx.jpg
+        # 需要构建完整路径
+        if image.image_url.startswith('/static/'):
+            # static文件
+            image_path = os.path.join(current_app.root_path, image.image_url.lstrip('/'))
+        else:
+            # 相对路径
+            image_path = os.path.join(current_app.root_path, image.image_url)
+
         if os.path.exists(image_path):
             os.remove(image_path)
-        
+
+        # 如果删除的是主图，需要设置另一个为主图
+        if image.is_primary:
+            other_images = ProductImage.query.filter(
+                ProductImage.product_id == product_id,
+                ProductImage.id != image_id
+            ).first()
+            if other_images:
+                other_images.is_primary = True
+
         # 删除数据库记录
         db.session.delete(image)
         db.session.commit()
-        
+
         flash('图片删除成功', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'删除失败: {str(e)}', 'error')
+
+    return redirect(url_for('admin.product_edit', product_id=product_id))
+
+# 设置主图
+@admin_bp.route('/products/images/<int:image_id>/primary', methods=['POST'])
+@login_required
+def set_primary_image(image_id):
+    """设置产品主图"""
+    image = ProductImage.query.get_or_404(image_id)
+    product_id = image.product_id
     
-    return redirect(url_for('admin.product_edit', product_id=image.product_id))
+    try:
+        # 取消该产品的所有主图
+        ProductImage.query.filter_by(product_id=product_id).update({'is_primary': False})
+        
+        # 设置当前图片为主图
+        image.is_primary = True
+        db.session.commit()
+        
+        flash('主图设置成功', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'设置失败: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.product_edit', product_id=product_id))

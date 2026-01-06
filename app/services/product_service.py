@@ -22,12 +22,15 @@ class ProductService:
             filename = secure_filename(file.filename)
             ext = filename.rsplit('.', 1)[1].lower()
             unique_filename = f"{product_id}_{uuid.uuid4().hex[:8]}.{ext}"
-            
-            # 保存文件
+
+            # 确保上传目录存在
             upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'products')
+            os.makedirs(upload_dir, exist_ok=True)
+
+            # 保存文件
             filepath = os.path.join(upload_dir, unique_filename)
             file.save(filepath)
-            
+
             # 返回相对路径
             return f'/static/uploads/products/{unique_filename}'
         return None
@@ -48,16 +51,19 @@ class ProductService:
                     'image/webp': 'webp'
                 }
                 ext = ext_map.get(content_type, 'jpg')
-                
+
                 # 生成唯一文件名
                 unique_filename = f"{product_id}_{uuid.uuid4().hex[:8]}.{ext}"
-                
-                # 保存文件
+
+                # 确保上传目录存在
                 upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'products')
+                os.makedirs(upload_dir, exist_ok=True)
+
+                # 保存文件
                 filepath = os.path.join(upload_dir, unique_filename)
                 with open(filepath, 'wb') as f:
                     f.write(response.content)
-                
+
                 return f'/static/uploads/products/{unique_filename}'
         except Exception as e:
             print(f"下载图片失败: {str(e)}")

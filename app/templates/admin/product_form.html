@@ -111,26 +111,48 @@
                         <div class="d-flex flex-wrap gap-2">
                             {% if product %}
                                 {% for image in product.images %}
-                                <div class="position-relative">
-                                    <img src="{{ image.image_url }}" width="80" height="80" 
-                                         style="object-fit: cover; border-radius: 4px;">
+                                <div class="position-relative" style="width: 90px; height: 110px;">
+                                    <img src="{{ image.image_url }}" width="90" height="90"
+                                         style="object-fit: cover; border-radius: 4px; border: 2px solid {% if image.is_primary %}#0d6efd{% else %}#dee2e6{% endif %};">
                                     {% if image.is_primary %}
-                                    <span class="badge bg-primary position-absolute" style="top: 0; left: 0;">主图</span>
+                                    <span class="badge bg-primary position-absolute" style="top: 0; left: 0; z-index: 10;">主图</span>
                                     {% endif %}
-                                    <form action="/admin/products/images/{{ image.id }}/delete" method="POST" 
-                                          style="position: absolute; top: 0; right: 0;">
-                                        <button type="submit" class="btn btn-sm btn-danger rounded-circle"
-                                                style="width: 24px; height: 24px; padding: 0;">
-                                            <i class="bi bi-x" style="font-size: 14px;"></i>
+
+                                    <!-- 操作按钮 -->
+                                    <div class="position-absolute d-flex gap-1" style="bottom: 0; left: 0; right: 0; padding: 4px; background: rgba(0,0,0,0.7); border-radius: 0 0 4px 4px;">
+                                        <!-- 设置主图按钮 -->
+                                        {% if not image.is_primary %}
+                                        <form action="/admin/products/images/{{ image.id }}/primary" method="POST" style="display: inline;">
+                                            <button type="submit" class="btn btn-sm btn-primary" title="设为主图"
+                                                    style="width: 32px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                                                <i class="bi bi-star" style="font-size: 12px;"></i>
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <button type="button" class="btn btn-sm btn-primary disabled"
+                                                style="width: 32px; height: 28px; padding: 0; opacity: 0.7;">
+                                            <i class="bi bi-star-fill" style="font-size: 12px;"></i>
                                         </button>
-                                    </form>
+                                        {% endif %}
+
+                                        <!-- 删除按钮 -->
+                                        <form action="/admin/products/images/{{ image.id }}/delete" method="POST"
+                                              style="display: inline;"
+                                              onsubmit="return confirm('确定要删除这张图片吗？');">
+                                            <button type="submit" class="btn btn-sm btn-danger" title="删除图片"
+                                                    style="width: 32px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                                                <i class="bi bi-trash" style="font-size: 12px;"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                                 {% endfor %}
                             {% endif %}
                         </div>
-                        {% if not product %}
+                        {% if not product or not product.images %}
                         <p class="text-muted small">暂无图片</p>
                         {% endif %}
+                        <small class="text-muted">点击星标图标设置主图，点击垃圾桶图标删除图片</small>
                     </div>
                 </div>
             </div>
