@@ -91,6 +91,16 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.settings' %}active{% endif %}" href="{{ url_for('admin.settings') }}">
+                            <i class="bi bi-sliders"></i> 系统设置
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.notification_test' %}active{% endif %}" href="{{ url_for('admin.notification_test') }}">
+                            <i class="bi bi-bell"></i> 通知测试
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link {% if 'system' in request.endpoint %}active{% endif %}" href="{{ url_for('system.settings') }}">
                             <i class="bi bi-gear"></i> 通知设置
                         </a>

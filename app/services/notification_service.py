@@ -168,6 +168,59 @@ class NotificationService:
             return False
     
     @staticmethod
+    def send_email(to, subject, body):
+        """发送单封测试邮件"""
+        try:
+            from app import mail
+
+            msg = Message(
+                subject=subject,
+                recipients=[to],
+                body=body,
+                html=body  # 支持HTML格式
+            )
+
+            mail.send(msg)
+            return {'success': True, 'message': '邮件发送成功'}
+        except Exception as e:
+            return {'success': False, 'message': str(e)}
+    
+    @staticmethod
+    def send_sms(to, body):
+        """发送单条测试短信"""
+        try:
+            # 获取短信配置
+            sms_api_url = current_app.config.get('SMS_API_URL')
+            sms_api_key = current_app.config.get('SMS_API_KEY')
+            sms_sign_name = current_app.config.get('SMS_SIGN_NAME', '')
+
+            # 如果配置了短信API，则发送
+            if sms_api_url and sms_api_key:
+                # 构建带签名的短信内容
+                full_message = f"【{sms_sign_name}】{body}" if sms_sign_name else body
+                
+                # 示例：使用requests发送（需要根据实际API调整）
+                # response = requests.post(
+                #     sms_api_url,
+                #     json={
+                #         'api_key': sms_api_key,
+                #         'phone': to,
+                #         'message': full_message
+                #     }
+                # )
+                # if response.status_code == 200 and response.json().get('code') == 0:
+                #     return {'success': True, 'message': '短信发送成功'}
+                # else:
+                #     return {'success': False, 'message': response.json().get('message', '发送失败')}
+                
+                print(f"[SMS Test] To: {to}, Message: {full_message}")
+                return {'success': True, 'message': '短信发送成功（模拟）'}
+            else:
+                return {'success': False, 'message': '短信服务未配置，请在config.py中设置SMS_API_URL和SMS_API_KEY'}
+        except Exception as e:
+            return {'success': False, 'message': str(e)}
+    
+    @staticmethod
     def notify_new_order(order):
         """发送新订单通知"""
         success = False

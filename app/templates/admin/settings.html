@@ -53,6 +53,31 @@
         </div>
         
         <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-globe"></i> 网站信息</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin.settings') }}">
+                    <div class="mb-3">
+                        <label class="form-label">网站名称</label>
+                        <input type="text" class="form-control" name="site_name"
+                               value="{{ settings.site_name or '日用产品批发零售系统' }}">
+                        <small class="text-muted">显示在导航栏的网站名称</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">网站标题</label>
+                        <input type="text" class="form-control" name="site_title"
+                               value="{{ settings.site_title or '日用产品批发零售系统' }}">
+                        <small class="text-muted">浏览器标签页显示的标题</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> 保存设置
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card shadow mt-4">
             <div class="card-header bg-success text-white">
                 <h5 class="mb-0"><i class="bi bi-building"></i> 公司信息</h5>
             </div>
@@ -60,17 +85,49 @@
                 <form method="POST" action="{{ url_for('admin.settings') }}">
                     <div class="mb-3">
                         <label class="form-label">公司名称</label>
-                        <input type="text" class="form-control" name="company_name" 
+                        <input type="text" class="form-control" name="company_name"
                                value="{{ settings.company_name or '' }}">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">联系电话</label>
-                        <input type="tel" class="form-control" name="company_phone" 
+                        <input type="tel" class="form-control" name="company_phone"
                                value="{{ settings.company_phone or '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">联系邮箱</label>
+                        <input type="email" class="form-control" name="company_email"
+                               value="{{ settings.company_email or '' }}">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">公司地址</label>
                         <textarea class="form-control" name="company_address" rows="2">{{ settings.company_address or '' }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> 保存设置
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card shadow mt-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-c-circle"></i> 版权与备案</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin.settings') }}">
+                    <div class="mb-3">
+                        <label class="form-label">版权信息</label>
+                        <input type="text" class="form-control" name="copyright"
+                               value="{{ settings.copyright or '' }}"
+                               placeholder="&copy; 2024 公司名称. All rights reserved.">
+                        <small class="text-muted">显示在页面底部的版权信息</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">ICP备案号</label>
+                        <input type="text" class="form-control" name="icp"
+                               value="{{ settings.icp or '' }}"
+                               placeholder="京ICP备XXXXXXXX号">
+                        <small class="text-muted">网站备案号，会显示在页面底部</small>
                     </div>
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-check-circle"></i> 保存设置

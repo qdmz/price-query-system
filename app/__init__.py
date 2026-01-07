@@ -68,6 +68,14 @@ def create_app(config_name='default'):
         """提供上传的文件（包括临时目录）"""
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
     
+    # 添加上下文处理器，将网站信息注入到所有模板
+    @app.context_processor
+    def inject_site_info():
+        """注入网站信息到所有模板"""
+        from app.services.settings_service import SettingsService
+        site_info = SettingsService.get_site_info()
+        return {'site_info': site_info}
+    
     # 创建数据库表
     with app.app_context():
         db.create_all()

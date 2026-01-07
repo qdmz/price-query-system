@@ -411,9 +411,14 @@ def settings():
                 'sms_enabled': request.form.get('sms_enabled', 'false'),
                 'notification_emails': request.form.get('notification_emails', ''),
                 'admin_phones': request.form.get('admin_phones', ''),
+                'site_name': request.form.get('site_name', '日用产品批发零售系统'),
+                'site_title': request.form.get('site_title', '日用产品批发零售系统'),
                 'company_name': request.form.get('company_name', ''),
                 'company_phone': request.form.get('company_phone', ''),
+                'company_email': request.form.get('company_email', ''),
                 'company_address': request.form.get('company_address', ''),
+                'copyright': request.form.get('copyright', ''),
+                'icp': request.form.get('icp', ''),
             }
             
             for key, value in settings_data.items():
@@ -436,6 +441,13 @@ def settings():
         settings[setting.key] = setting.value
     
     return render_template('admin/settings.html', settings=settings)
+
+# 通知测试页面
+@admin_bp.route('/notification-test')
+@login_required
+def notification_test():
+    """通知测试页面"""
+    return render_template('admin/notification_test.html')
 
 # 删除图片
 @admin_bp.route('/products/images/<int:image_id>/delete', methods=['POST'])

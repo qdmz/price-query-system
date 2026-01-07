@@ -18,6 +18,7 @@ class Config:
     MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'smtp.example.com'
     MAIL_PORT = int(os.environ.get('MAIL_PORT') or 587)
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
+    MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'false').lower() in ['true', 'on', '1']
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') or 'noreply@example.com'
@@ -25,6 +26,13 @@ class Config:
     # 短信配置（示例配置，实际使用需要对接短信服务商）
     SMS_API_URL = os.environ.get('SMS_API_URL')
     SMS_API_KEY = os.environ.get('SMS_API_KEY')
+    SMS_SIGN_NAME = os.environ.get('SMS_SIGN_NAME', '')  # 短信签名
+    
+    # 阿里云短信配置（可选）
+    ALIYUN_ACCESS_KEY_ID = os.environ.get('ALIYUN_ACCESS_KEY_ID')
+    ALIYUN_ACCESS_KEY_SECRET = os.environ.get('ALIYUN_ACCESS_KEY_SECRET')
+    ALIYUN_SMS_SIGN_NAME = os.environ.get('ALIYUN_SMS_SIGN_NAME')
+    ALIYUN_SMS_TEMPLATE_CODE = os.environ.get('ALIYUN_SMS_TEMPLATE_CODE')
     
     # 管理员配置
     ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME') or 'admin'

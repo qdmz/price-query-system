@@ -1,7 +1,8 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from app.models import db, Product, ProductImage, Order, OrderItem
 from app.services.product_service import ProductService
 from app.services.order_service import OrderService
+from app.services.notification_service import NotificationService
 from datetime import datetime
 
 api_bp = Blueprint('api', __name__)
@@ -213,3 +214,77 @@ def api_statistics():
             'orders': order_stats
         }
     })
+
+# 测试通知API
+@api_bp.route('/admin/test-notification/email', methods=['POST'])
+def api_test_email_notification():
+    """测试邮件通知"""
+    try:
+        data = request.get_json()
+        
+        to = data.get('to')
+        subject = data.get('subject', '测试邮件')
+        body = data.get('body', '')
+        
+        if not to:
+            return jsonify({
+                'success': False,
+                'message': '收件人邮箱不能为空'
+            }), 400
+        
+        # 发送测试邮件
+        notification_service = NotificationService()
+        result = notification_service.send_email(to, subject, body)
+        
+        if result['success']:
+            return jsonify({
+                'success': True,
+                'message': '测试邮件发送成功！请检查收件箱。'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': f'邮件发送失败: {result.get("message", "未知错误")}'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'发送失败: {str(e)}'
+        }), 500
+
+@api_bp.route('/admin/test-notification/sms', methods=['POST'])
+def api_test_sms_notification():
+    """测试短信通知"""
+    try:
+        data = request.get_json()
+        
+        to = data.get('to')
+        body = data.get('body', '')
+        
+        if not to:
+            return jsonify({
+                'success': False,
+                'message': '收件人手机号不能为空'
+            }), 400
+        
+        # 发送测试短信
+        notification_service = NotificationService()
+        result = notification_service.send_sms(to, body)
+        
+        if result['success']:
+            return jsonify({
+                'success': True,
+                'message': '测试短信发送成功！'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': f'短信发送失败: {result.get("message", "未知错误")}'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'发送失败: {str(e)}'
+        }), 500
