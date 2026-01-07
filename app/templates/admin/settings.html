@@ -7,131 +7,149 @@
 
 <div class="row">
     <div class="col-lg-8">
-        <div class="card shadow mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="bi bi-bell"></i> 通知设置</h5>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('admin.settings') }}">
-                    <div class="mb-4">
-                        <h6 class="mb-3">邮件通知</h6>
-                        <div class="form-check form-switch mb-3">
-                            <input class="form-check-input" type="checkbox" id="email_enabled" name="email_enabled" 
-                                   {% if settings.email_enabled == 'true' %}checked{% endif %} value="true">
-                            <label class="form-check-label" for="email_enabled">启用邮件通知</label>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">通知邮箱列表</label>
-                            <textarea class="form-control" name="notification_emails" rows="2" 
-                                      placeholder="多个邮箱用逗号分隔">{{ settings.notification_emails }}</textarea>
-                            <small class="text-muted">当有新订单时，系统将发送邮件通知到以上邮箱地址</small>
-                        </div>
-                    </div>
-                    
-                    <hr>
-                    
-                    <div class="mb-4">
-                        <h6 class="mb-3">短信通知</h6>
-                        <div class="form-check form-switch mb-3">
-                            <input class="form-check-input" type="checkbox" id="sms_enabled" name="sms_enabled" 
-                                   {% if settings.sms_enabled == 'true' %}checked{% endif %} value="true">
-                            <label class="form-check-label" for="sms_enabled">启用短信通知</label>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">管理员手机号</label>
-                            <textarea class="form-control" name="admin_phones" rows="2" 
-                                      placeholder="多个手机号用逗号分隔">{{ settings.admin_phones }}</textarea>
-                            <small class="text-muted">当有新订单时，系统将发送短信通知到以上手机号</small>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle"></i> 保存设置
-                    </button>
-                </form>
-            </div>
-        </div>
-        
         <div class="card shadow">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0"><i class="bi bi-globe"></i> 网站信息</h5>
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-sliders"></i> 系统配置</h5>
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('admin.settings') }}">
-                    <div class="mb-3">
-                        <label class="form-label">网站名称</label>
-                        <input type="text" class="form-control" name="site_name"
-                               value="{{ settings.site_name or '日用产品批发零售系统' }}">
-                        <small class="text-muted">显示在导航栏的网站名称</small>
+                    <!-- 通知设置 -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <h6 class="mb-0 me-2"><i class="bi bi-bell"></i> 通知设置</h6>
+                        </div>
+
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-3 text-muted">邮件通知</h6>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="email_enabled" name="email_enabled"
+                                           {% if settings.email_enabled == 'true' %}checked{% endif %} value="true">
+                                    <label class="form-check-label" for="email_enabled">启用邮件通知</label>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">通知邮箱列表</label>
+                                    <textarea class="form-control" name="notification_emails" rows="2"
+                                              placeholder="多个邮箱用逗号分隔">{{ settings.notification_emails }}</textarea>
+                                    <small class="text-muted">当有新订单时，系统将发送邮件通知到以上邮箱地址</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-3 text-muted">短信通知</h6>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="sms_enabled" name="sms_enabled"
+                                           {% if settings.sms_enabled == 'true' %}checked{% endif %} value="true">
+                                    <label class="form-check-label" for="sms_enabled">启用短信通知</label>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">管理员手机号</label>
+                                    <textarea class="form-control" name="admin_phones" rows="2"
+                                              placeholder="多个手机号用逗号分隔">{{ settings.admin_phones }}</textarea>
+                                    <small class="text-muted">当有新订单时，系统将发送短信通知到以上手机号</small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">网站标题</label>
-                        <input type="text" class="form-control" name="site_title"
-                               value="{{ settings.site_title or '日用产品批发零售系统' }}">
-                        <small class="text-muted">浏览器标签页显示的标题</small>
+
+                    <hr>
+
+                    <!-- 网站信息 -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <h6 class="mb-0 me-2"><i class="bi bi-globe"></i> 网站信息</h6>
+                        </div>
+
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">网站名称</label>
+                                    <input type="text" class="form-control" name="site_name"
+                                           value="{{ settings.site_name or '日用产品批发零售系统' }}">
+                                    <small class="text-muted">显示在导航栏的网站名称</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">网站标题</label>
+                                    <input type="text" class="form-control" name="site_title"
+                                           value="{{ settings.site_title or '日用产品批发零售系统' }}">
+                                    <small class="text-muted">浏览器标签页显示的标题</small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle"></i> 保存设置
-                    </button>
-                </form>
-            </div>
-        </div>
-        
-        <div class="card shadow mt-4">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0"><i class="bi bi-building"></i> 公司信息</h5>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('admin.settings') }}">
-                    <div class="mb-3">
-                        <label class="form-label">公司名称</label>
-                        <input type="text" class="form-control" name="company_name"
-                               value="{{ settings.company_name or '' }}">
+
+                    <hr>
+
+                    <!-- 公司信息 -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <h6 class="mb-0 me-2"><i class="bi bi-building"></i> 公司信息</h6>
+                        </div>
+
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">公司名称</label>
+                                    <input type="text" class="form-control" name="company_name"
+                                           value="{{ settings.company_name or '' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">联系电话</label>
+                                    <input type="tel" class="form-control" name="company_phone"
+                                           value="{{ settings.company_phone or '' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">联系邮箱</label>
+                                    <input type="email" class="form-control" name="company_email"
+                                           value="{{ settings.company_email or '' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">公司地址</label>
+                                    <textarea class="form-control" name="company_address" rows="2">{{ settings.company_address or '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">联系电话</label>
-                        <input type="tel" class="form-control" name="company_phone"
-                               value="{{ settings.company_phone or '' }}">
+
+                    <hr>
+
+                    <!-- 版权与备案 -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <h6 class="mb-0 me-2"><i class="bi bi-c-circle"></i> 版权与备案</h6>
+                        </div>
+
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">版权信息</label>
+                                    <input type="text" class="form-control" name="copyright"
+                                           value="{{ settings.copyright or '' }}"
+                                           placeholder="&copy; 2024 公司名称. All rights reserved.">
+                                    <small class="text-muted">显示在页面底部的版权信息</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">ICP备案号</label>
+                                    <input type="text" class="form-control" name="icp"
+                                           value="{{ settings.icp or '' }}"
+                                           placeholder="京ICP备XXXXXXXX号">
+                                    <small class="text-muted">网站备案号，会显示在页面底部</small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">联系邮箱</label>
-                        <input type="email" class="form-control" name="company_email"
-                               value="{{ settings.company_email or '' }}">
+
+                    <!-- 保存按钮 -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> 保存所有设置
+                        </button>
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> 取消
+                        </a>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">公司地址</label>
-                        <textarea class="form-control" name="company_address" rows="2">{{ settings.company_address or '' }}</textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle"></i> 保存设置
-                    </button>
-                </form>
-            </div>
-        </div>
-        
-        <div class="card shadow mt-4">
-            <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0"><i class="bi bi-c-circle"></i> 版权与备案</h5>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('admin.settings') }}">
-                    <div class="mb-3">
-                        <label class="form-label">版权信息</label>
-                        <input type="text" class="form-control" name="copyright"
-                               value="{{ settings.copyright or '' }}"
-                               placeholder="&copy; 2024 公司名称. All rights reserved.">
-                        <small class="text-muted">显示在页面底部的版权信息</small>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">ICP备案号</label>
-                        <input type="text" class="form-control" name="icp"
-                               value="{{ settings.icp or '' }}"
-                               placeholder="京ICP备XXXXXXXX号">
-                        <small class="text-muted">网站备案号，会显示在页面底部</small>
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle"></i> 保存设置
-                    </button>
                 </form>
             </div>
         </div>
